@@ -220,7 +220,7 @@ void Z_MouseMoved(int x, int y, int buttons) {
 
 /*
  =======================================================================================================================
-    DRAWING £
+    DRAWING Â£
     Z_DrawGrid
  =======================================================================================================================
  */
@@ -362,10 +362,10 @@ void Z_Draw(void) {
 	);
 
 	/*
-	 * GL Bug £
+	 * GL Bug Â£
 	 * When not using hw acceleration, gl will fault if we clear the depth buffer bit
 	 * on the first pass. The hack fix is to set the GL_DEPTH_BUFFER_BIT only after
-	 * Z_Draw() has been called once. Yeah, right. £
+	 * Z_Draw() has been called once. Yeah, right. Â£
 	 * qglClear(glbitClear);
 	 */
 	qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

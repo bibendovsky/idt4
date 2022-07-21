@@ -390,7 +390,7 @@ OSErr TearDownPickMonitorPane(ControlRef inPane)
 #pragma mark -
 
 //------------------------------------------------------------------------------------
-// ¥ PickMonitorHandler
+// Â¥ PickMonitorHandler
 //------------------------------------------------------------------------------------
 // Our command handler for the PickMonitor dialog.
 
