@@ -74,5 +74,21 @@ void	DebuggerServerCheckBreakpoint( idInterpreter *interpreter, idProgram *progr
 
 void	PDAEditorInit( const idDict *spawnArgs ) { common->Printf( "The PDA editor only runs on Win32\n" ); }
 
+#if !defined(IDT4_VANILLA) && !defined(IDT4_MFC)
+void PDAEditorShutdown()
+{}
+
+void PDAEditorRun()
+{}
+#endif
+
 void	MaterialEditorInit() { common->Printf( "The Material editor only runs on Win32\n" ); }
 void	MaterialEditorPrintConsole( const char *text ) {}
+
+#if !defined(IDT4_VANILLA) && !defined(IDT4_MFC)
+void MaterialEditorRun()
+{}
+
+void MaterialEditorShutdown()
+{}
+#endif

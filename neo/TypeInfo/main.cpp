@@ -268,6 +268,19 @@ int main( int argc, char** argv ) {
 
 	generator = new idTypeInfoGen;
 
+#if !defined(IDT4_VANILLA) || (defined(IDT4_VANILLA) && defined(IDT4_VANILLA_FIX_COMPILATION_ERRORS))
+	if ( argc > 1 ) {
+		sourcePath = idStr( "../" SOURCE_CODE_BASE_FOLDER "/" ) + argv[1];
+	} else {
+		sourcePath = "../" SOURCE_CODE_BASE_FOLDER "/game";
+	}
+
+	if ( argc > 2 ) {
+		fileName = idStr( "../" SOURCE_CODE_BASE_FOLDER "/" ) + argv[2];
+	} else {
+		fileName = "../" SOURCE_CODE_BASE_FOLDER "/game/gamesys/GameTypeInfo.h";
+	}
+#else
 	if ( argc > 1 ) {
 		sourcePath = idStr( "../"SOURCE_CODE_BASE_FOLDER"/" ) + argv[1];
 	} else {
@@ -279,6 +292,7 @@ int main( int argc, char** argv ) {
 	} else {
 		fileName = "../"SOURCE_CODE_BASE_FOLDER"/game/gamesys/GameTypeInfo.h";
 	}
+#endif
 
 	if ( argc > 3 ) {
 		for ( int i = 3; i < argc; i++ ) {

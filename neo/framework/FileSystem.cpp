@@ -3595,7 +3595,11 @@ size_t idFileSystemLocal::CurlWriteFunction( void *ptr, size_t size, size_t nmem
 		return size * nmemb;
 	}
 	#ifdef _WIN32
+#if !defined(IDT4_VANILLA) || (defined(IDT4_VANILLA) && defined(IDT4_VANILLA_FIX_COMPILATION_ERRORS))
+		return _write( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), ptr, size * nmemb );
+#else
 		return _write( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, ptr, size * nmemb );
+#endif
 	#else
 		return fwrite( ptr, size, nmemb, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 	#endif
@@ -3641,7 +3645,11 @@ dword BackgroundDownloadThread( void *parms ) {
 		if ( bgl->opcode == DLTYPE_FILE ) {
 			// use the low level read function, because fread may allocate memory
 			#if defined(WIN32)
+#if !defined(IDT4_VANILLA) || (defined(IDT4_VANILLA) && defined(IDT4_VANILLA_FIX_COMPILATION_ERRORS))
+				_read( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), bgl->file.buffer, bgl->file.length );
+#else
 				_read( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, bgl->file.buffer, bgl->file.length );
+#endif
 			#else
 				fread(  bgl->file.buffer, bgl->file.length, 1, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 			#endif

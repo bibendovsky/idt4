@@ -42,7 +42,9 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef _D3SDK
 #ifndef GAME_DLL
 
+#ifdef IDT4_VANILLA
 #define WINVER				0x501
+#endif
 
 #if 0
 // Dedicated server hits unresolved when trying to link this way now. Likely because of the 2010/Win7 transition? - TTimo
@@ -58,7 +60,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #else
 
+#if defined(IDT4_VANILLA) || defined(IDT4_MFC)
 #include "../tools/comafx/StdAfx.h"
+#endif
 
 #endif
 
@@ -69,8 +73,13 @@ If you have questions concerning this license or the applicable additional terms
 #define DIRECTINPUT_VERSION  0x0800			// was 0x0700 with the old mssdk
 #define DIRECTSOUND_VERSION  0x0800
 
+#ifdef IDT4_VANILLA
 #include <dsound.h>
 #include <dinput.h>
+#else
+#include "dsound.h"
+#include "dinput.h"
+#endif
 
 #endif /* !GAME_DLL */
 #endif /* !_D3SDK */
@@ -102,7 +111,11 @@ If you have questions concerning this license or the applicable additional terms
 #include <ctype.h>
 #include <typeinfo>
 #include <errno.h>
+#ifdef IDT4_VANILLA_FIX_COMPILATION_ERRORS
+#include <cmath>
+#else
 #include <math.h>
+#endif
 
 //-----------------------------------------------------
 

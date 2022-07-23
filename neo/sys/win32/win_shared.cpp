@@ -47,6 +47,210 @@ If you have questions concerning this license or the applicable additional terms
 #pragma comment (lib, "wbemuuid.lib")
 #endif
 
+#if !(defined(IDT4_VANILLA) || defined(IDT4_MFC))
+#include <tchar.h>
+
+namespace {
+
+template<typename T>
+class CComPtr
+{
+public:
+	CComPtr(T* ptr = NULL) throw()
+		:
+		ptr_(ptr)
+	{
+		if (ptr_ == NULL)
+		{
+			return;
+		}
+
+		ptr_->AddRef();
+	}
+
+	~CComPtr()
+	{
+		if (ptr_ == NULL)
+		{
+			return;
+		}
+
+		ptr_->Release();
+	}
+
+	T* operator->() const throw()
+	{
+		return ptr_;
+	}
+
+	operator IUnknown*() const throw()
+	{
+		return ptr_;
+	}
+
+	T** operator&() throw()
+	{
+		assert(ptr_ == NULL);
+		return &ptr_;
+	}
+
+private:
+	T* ptr_;
+
+private:
+	CComPtr(const CComPtr&);
+	CComPtr& operator=(const CComPtr&);
+};
+
+class CComBSTR
+{
+#define IDT4_PREFIX "[CComBSTR] "
+
+public:
+	explicit CComBSTR(LPCSTR chars)
+		:
+		bstr_()
+	{
+		const int wchar_size_with_null = MultiByteToWideChar(
+			CP_ACP,
+			MB_ERR_INVALID_CHARS,
+			chars,
+			-1,
+			NULL,
+			0);
+
+		if (wchar_size_with_null == 0)
+		{
+			throw Exception(IDT4_PREFIX "Failed to get OLE-char count.");
+		}
+
+		if (wchar_size_with_null > max_wchars_with_null)
+		{
+			throw Exception(IDT4_PREFIX "Output string too big.");
+		}
+
+		WCHAR wchars[max_wchars_with_null];
+
+		const int converted_size = MultiByteToWideChar(
+			CP_ACP,
+			MB_ERR_INVALID_CHARS,
+			chars,
+			-1,
+			wchars,
+			wchar_size_with_null);
+
+		if (wchar_size_with_null == 0)
+		{
+			throw Exception(IDT4_PREFIX "Failed to convert to OLE-chars.");
+		}
+
+		bstr_ = SysAllocString(wchars);
+
+		if (bstr_ == NULL)
+		{
+			throw Exception(IDT4_PREFIX "SysAllocString failed.");
+		}
+	}
+
+	explicit CComBSTR(const OLECHAR* ole_chars)
+		:
+		bstr_()
+	{
+		bstr_ = SysAllocString(ole_chars);
+
+		if (bstr_ == NULL)
+		{
+			throw Exception(IDT4_PREFIX "SysAllocString failed.");
+		}
+	}
+
+	CComBSTR(const CComBSTR& rhs)
+		:
+		bstr_()
+	{
+		bstr_ = SysAllocString(rhs.bstr_);
+
+		if (bstr_ == NULL)
+		{
+			throw Exception(IDT4_PREFIX "SysAllocString failed.");
+		}
+	}
+
+	~CComBSTR()
+	{
+		SysFreeString(bstr_);
+	}
+
+	operator const BSTR() const throw()
+	{
+		return bstr_;
+	}
+
+private:
+	static const int max_wchars_with_null = 128;
+
+private:
+	class Exception : public std::exception
+	{
+	public:
+		explicit Exception(const char* message) throw()
+			:
+			message_(message)
+		{}
+
+		Exception(const Exception& rhs) throw()
+			:
+			message_(rhs.what())
+		{}
+
+		Exception& operator=(const Exception& rhs) throw()
+		{
+			message_ = rhs.what();
+			return *this;
+		}
+
+		virtual ~Exception()
+		{}
+
+		const char* what() const throw()
+		{
+			return message_;
+		}
+
+	private:
+		const char* message_;
+	};
+
+private:
+	BSTR bstr_;
+
+private:
+	CComBSTR& operator=(const CComBSTR&);
+
+#undef IDT4_PREFIX
+};
+
+class CComVariant : public tagVARIANT
+{
+public:
+	CComVariant() throw()
+	{
+		VariantInit(this);
+	}
+
+	~CComVariant()
+	{
+		VariantClear(this);
+	}
+
+private:
+	CComVariant(const CComVariant&);
+	CComVariant& operator=(const CComVariant&);
+};
+
+} // namespace
+#endif
+
 /*
 ================
 Sys_Milliseconds

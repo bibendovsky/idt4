@@ -93,7 +93,9 @@ If you have questions concerning this license or the applicable additional terms
 
 // don't define ID_ALLOW_TOOLS when we don't want tool code in the executable.
 #if defined( _WIN32 ) && !defined( ID_DEDICATED ) && !defined( ID_DEMO_BUILD )
+#ifdef IDT4_MFC
 	#define	ID_ALLOW_TOOLS
+#endif
 #endif
 
 // don't do backtraces in release builds.

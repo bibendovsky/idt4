@@ -34,7 +34,9 @@ If you have questions concerning this license or the applicable additional terms
 //
 
 //#define _WIN32_WINNT 0x0500 // for KBDLLHOOKSTRUCT
+#if defined(IDT4_VANILLA) || defined(IDT4_MFC)
 #include <afxwin.h>         // MFC core and standard components
+#endif
 #include "win_local.h"
 
 #define DLLEXPORT __declspec(dllexport)
