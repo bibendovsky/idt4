@@ -499,6 +499,8 @@ void idSoundSample::Load( void ) {
 				if ( alGetError() != AL_NO_ERROR ) {
 					common->Error( "idSoundCache: error loading data into OpenAL hardware buffer" );
 				} else {
+// IDT4-FIX-D3-BUG-001
+#ifdef IDT4_VANILLA
 					// Compute amplitude block size
 					int blockSize = 512 * objectInfo.nSamplesPerSec / 44100 ;
 
@@ -520,6 +522,7 @@ void idSoundSample::Load( void ) {
 						((short *)amplitudeData)[ ( i / blockSize ) * 2     ] = min;
 						((short *)amplitudeData)[ ( i / blockSize ) * 2 + 1 ] = max;
 					}
+#endif
 
 					hardwareBuffer = true;
 				}
@@ -579,6 +582,8 @@ void idSoundSample::Load( void ) {
 					if ( alGetError() != AL_NO_ERROR )
 						common->Error( "idSoundCache: error loading data into OpenAL hardware buffer" );
 					else {
+// IDT4-FIX-D3-BUG-001
+#ifdef IDT4_VANILLA
 						// Compute amplitude block size
 						int blockSize = 512 * objectInfo.nSamplesPerSec / 44100 ;
 
@@ -600,6 +605,7 @@ void idSoundSample::Load( void ) {
 							((short *)amplitudeData)[ ( i / blockSize ) * 2     ] = min;
 							((short *)amplitudeData)[ ( i / blockSize ) * 2 + 1 ] = max;
 						}
+#endif
 						
 						hardwareBuffer = true;
 					}
@@ -610,11 +616,14 @@ void idSoundSample::Load( void ) {
 			}
 		}
 
+// IDT4-FIX-D3-BUG-001
+#ifdef IDT4_VANILLA
 		// Free memory if sample was loaded into hardware
 		if ( hardwareBuffer ) {
 			soundCacheAllocator.Free( nonCacheData );
 			nonCacheData = NULL;
 		}
+#endif
 	}
 
 	fh.Close();
