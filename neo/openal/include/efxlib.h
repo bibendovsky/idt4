@@ -51,6 +51,13 @@ public:
 	void Clear( void );
 
 	idList<idSoundEffect *>effects;
+
+// IDT4-FIX-D3-BUG-002
+#ifndef IDT4_VANILLA
+private:
+	static EAXREVERBPROPERTIES make_default_reverb_properties() throw();
+	static const EAXREVERBPROPERTIES& get_default_reverb_properties() throw();
+#endif
 };
 ///////////////////////////////////////////////////////////
 

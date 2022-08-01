@@ -102,6 +102,11 @@ bool idEFXFile::ReadEffect( idLexer &src, idSoundEffect *effect ) {
 				return false;
 			}
 			
+// IDT4-FIX-D3-BUG-002
+#ifndef IDT4_VANILLA
+			*reverb = get_default_reverb_properties();
+#endif
+
 			do {
 				if ( !src.ReadToken( &token ) ) {
 					src.Error( "idEFXFile::ReadEffect: EOF without closing brace" );
@@ -230,3 +235,45 @@ idEFXFile::UnloadFile
 void idEFXFile::UnloadFile( void ) {
 	Clear();
 }
+
+// IDT4-FIX-D3-BUG-002
+#ifndef IDT4_VANILLA
+EAXREVERBPROPERTIES idEFXFile::make_default_reverb_properties() throw()
+{
+	static const EAXVECTOR default_reflections_pan = EAXREVERB_DEFAULTREFLECTIONSPAN;
+	static const EAXVECTOR default_reverb_pan = EAXREVERB_DEFAULTREVERBPAN;
+
+	EAXREVERBPROPERTIES props;
+    props.ulEnvironment = EAXREVERB_DEFAULTENVIRONMENT;
+    props.flEnvironmentSize = EAXREVERB_DEFAULTENVIRONMENTSIZE;
+    props.flEnvironmentDiffusion = EAXREVERB_DEFAULTENVIRONMENTDIFFUSION;
+    props.lRoom = EAXREVERB_DEFAULTROOM;
+    props.lRoomHF = EAXREVERB_DEFAULTROOMHF;
+    props.lRoomLF = EAXREVERB_DEFAULTROOMLF;
+    props.flDecayTime = EAXREVERB_DEFAULTDECAYTIME;
+    props.flDecayHFRatio = EAXREVERB_DEFAULTDECAYHFRATIO;
+    props.flDecayLFRatio = EAXREVERB_DEFAULTDECAYLFRATIO;
+    props.lReflections = EAXREVERB_DEFAULTREFLECTIONS;
+    props.flReflectionsDelay = EAXREVERB_DEFAULTREFLECTIONSDELAY;
+    props.vReflectionsPan = default_reflections_pan;
+    props.lReverb = EAXREVERB_DEFAULTREVERB;
+    props.flReverbDelay = EAXREVERB_DEFAULTREVERBDELAY;
+    props.vReverbPan = default_reverb_pan;
+    props.flEchoTime = EAXREVERB_DEFAULTECHOTIME;
+    props.flEchoDepth = EAXREVERB_DEFAULTECHODEPTH;
+    props.flModulationTime = EAXREVERB_DEFAULTMODULATIONTIME;
+    props.flModulationDepth = EAXREVERB_DEFAULTMODULATIONDEPTH;
+    props.flAirAbsorptionHF = EAXREVERB_DEFAULTAIRABSORPTIONHF;
+    props.flHFReference = EAXREVERB_DEFAULTHFREFERENCE;
+    props.flLFReference = EAXREVERB_DEFAULTLFREFERENCE;
+    props.flRoomRolloffFactor = EAXREVERB_DEFAULTROOMROLLOFFFACTOR;
+    props.ulFlags = EAXREVERB_DEFAULTFLAGS;
+	return props;
+}
+
+const EAXREVERBPROPERTIES& idEFXFile::get_default_reverb_properties() throw()
+{
+	static const EAXREVERBPROPERTIES props = make_default_reverb_properties();
+	return props;
+}
+#endif
