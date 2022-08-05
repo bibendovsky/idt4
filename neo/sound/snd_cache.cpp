@@ -638,6 +638,26 @@ void idSoundSample::PurgeSoundSample() {
 	purged = true;
 
 	if ( hardwareBuffer && idSoundSystemLocal::useOpenAL ) {
+// IDT4-FIX-D3-BUG-003
+#ifndef IDT4_VANILLA
+		if (openalBuffer != AL_NONE)
+		{
+			for (ALsizei i = 0; i < soundSystemLocal.openalSourceCount; ++i)
+			{
+				openalSource_t& openalSource = soundSystemLocal.openalSources[i];
+
+				if (!openalSource.inUse ||
+					openalSource.chan == NULL ||
+					openalSource.chan->leadinSample == NULL ||
+					openalSource.chan->leadinSample->openalBuffer != openalBuffer)
+				{
+					continue;
+				}
+
+				openalSource.chan->ALStop();
+			}
+		}
+#endif
 		alGetError();
 		alDeleteBuffers( 1, &openalBuffer );
 		if ( alGetError() != AL_NO_ERROR ) {
