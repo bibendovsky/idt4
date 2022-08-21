@@ -32,6 +32,29 @@ ALvoid ( ALAPIENTRY * idalGenSources )( ALsizei, ALuint * ) = NULL;
 ALvoid ( ALAPIENTRY * idalSourcef )( ALuint, ALenum, ALfloat ) = NULL;
 ALvoid ( ALAPIENTRY * idalSourceUnqueueBuffers )( ALuint, ALsizei, ALuint * ) = NULL;
 ALvoid ( ALAPIENTRY * idalSourcePlay )( ALuint ) = NULL;
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+LPIDALCGETERROR idalcGetError = NULL;
+LPIDALCISEXTENSIONPRESENT idalcIsExtensionPresent = NULL;
+LPIDALCGETCONTEXTSDEVICE idalcGetContextsDevice = NULL;
+LPIDALCGETINTEGERV idalcGetIntegerv = NULL;
+LPIDALSOURCE3I idalSource3i = NULL;
+
+namespace {
+
+template<typename TSymbol>
+void idal_resolve_symbol(HMODULE h, const char* symbol_name, TSymbol& symbol)
+{
+	symbol = reinterpret_cast<TSymbol>(GetProcAddress(h, symbol_name));
+
+	if (symbol == NULL)
+	{
+		throw symbol_name;
+	}
+}
+
+} // namespace
+#endif
 
 const char* InitializeIDAL( HMODULE h ) {
 idalGetError = ( ALenum ( ALAPIENTRY * ) ( ALvoid ) )GetProcAddress( h, "alGetError" );
@@ -154,5 +177,20 @@ idalSourcePlay = ( ALvoid ( ALAPIENTRY * ) ( ALuint ) )GetProcAddress( h, "alSou
 if ( !idalSourcePlay) {
   return "alSourcePlay";
 }
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	try
+	{
+		idal_resolve_symbol(h, "alcGetError", idalcGetError);
+		idal_resolve_symbol(h, "alcIsExtensionPresent", idalcIsExtensionPresent);
+		idal_resolve_symbol(h, "alcGetContextsDevice", idalcGetContextsDevice);
+		idal_resolve_symbol(h, "alcGetIntegerv", idalcGetIntegerv);
+		idal_resolve_symbol(h, "alSource3i", idalSource3i);
+	}
+	catch (const char* failed_symbol_name)
+	{
+		return failed_symbol_name;
+	}
+#endif
 return NULL;
 };

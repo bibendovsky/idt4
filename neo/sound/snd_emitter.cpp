@@ -189,6 +189,12 @@ void idSoundChannel::Clear( void ) {
 	openalStreamingOffset = 0;
 	openalStreamingBuffer[0] = openalStreamingBuffer[1] = openalStreamingBuffer[2] = 0;
 	lastopenalStreamingBuffer[0] = lastopenalStreamingBuffer[1] = lastopenalStreamingBuffer[2] = 0;
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	al_efx_enabled_send_0 = false;
+	al_efx_eax_occlusion_cached = false;
+#endif
 }
 
 /*

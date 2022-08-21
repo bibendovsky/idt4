@@ -46,6 +46,11 @@ If you have questions concerning this license or the applicable additional terms
 #define ID_ALCHAR
 #endif
 #include "../openal/include/efxlib.h"
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+#include "../openal/include/efx.h"
+#include "../openal/include/efx-creative.h"
+#endif
 
 // demo sound commands
 typedef enum {
@@ -429,6 +434,12 @@ public:
 
 	bool				disallowSlow;
 
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	bool al_efx_enabled_send_0;
+	bool al_efx_eax_occlusion_cached;
+	long al_efx_eax_occlusion_cache;
+#endif
 };
 
 class idSoundEmitterLocal : public idSoundEmitter {
@@ -777,6 +788,126 @@ public:
 							// mark available during initialization, or through an explicit test
 	static int				EAXAvailable;
 
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	static const int al_efx_min_eax_mb = EAXREVERB_MINREVERB;
+	static const int al_efx_max_eax_mb = EAXREVERB_MAXREVERB;
+	static const int al_efx_mb_to_gain_lut_size = al_efx_max_eax_mb - al_efx_min_eax_mb + 1;
+
+	typedef ALfloat AlEfxMbToGainLut[al_efx_mb_to_gain_lut_size];
+
+	struct AlEfxSymbols
+	{
+		LPALGENEFFECTS alGenEffects;
+		LPALDELETEEFFECTS alDeleteEffects;
+		LPALEFFECTI alEffecti;
+		LPALEFFECTF alEffectf;
+		LPALEFFECTFV alEffectfv;
+
+		LPALGENFILTERS alGenFilters;
+		LPALDELETEFILTERS alDeleteFilters;
+		LPALFILTERI alFilteri;
+		LPALFILTERF alFilterf;
+
+		LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+		LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+		LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+		LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
+	};
+
+	struct AlEfxLowPassFilterParam
+	{
+		ALfloat gain;
+		ALfloat gain_hf;
+	};
+
+	struct AlEfxEaxOcclusionParam
+	{
+		long occlusion;
+		float occlusion_lf_ratio;
+		float occlusion_room_ratio;
+		float occlusion_direct_ratio;
+	};
+
+	struct AlEfxEaxOcclusionPathParam
+	{
+		long occlusion;
+		float lf_ratio;
+		float ratio;
+	};
+
+public:
+	AlEfxMbToGainLut al_efx_mb_to_gain_lut;
+
+	AlEfxSymbols al_efx_symbols;
+	ALuint al_efx_effect_slot;
+	ALuint al_efx_effect;
+	ALuint al_efx_direct_filter;
+	ALuint al_efx_send_filter;
+	EAXREVERBPROPERTIES al_efx_eax_props;
+	static bool al_efx_available;
+	bool al_efx_eax_reverb;
+
+public:
+	template<typename T>
+	static const T& al_efx_clamp(const T& x, const T& x_min, const T& x_max)
+	{
+		return (x < x_min) ? x_min : ((x > x_max) ? x_max : x);
+	}
+
+	static ALfloat al_efx_mb_to_gain(float mb);
+
+	void al_efx_initialize_mb_to_gain_lut();
+	ALfloat al_efx_lookup_gain(long eax_mb) const;
+
+	void al_efx_set_efx_density() const;
+	void al_efx_set_efx_diffusion() const;
+	void al_efx_set_efx_gain() const;
+	void al_efx_set_efx_gain_hf() const;
+	void al_efx_set_efx_gain_lf() const;
+	void al_efx_set_efx_decay_time() const;
+	void al_efx_set_efx_decay_hf_ratio() const;
+	void al_efx_set_efx_decay_lf_ratio() const;
+	void al_efx_set_efx_reflections_gain() const;
+	void al_efx_set_efx_reflections_delay() const;
+	void al_efx_set_efx_reflections_pan() const;
+	void al_efx_set_efx_late_reverb_gain() const;
+	void al_efx_set_efx_late_reverb_delay() const;
+	void al_efx_set_efx_late_reverb_pan() const;
+	void al_efx_set_efx_echo_time() const;
+	void al_efx_set_efx_echo_depth() const;
+	void al_efx_set_efx_modulation_time() const;
+	void al_efx_set_efx_modulation_depth() const;
+	void al_efx_set_efx_air_absorption_hf() const;
+	void al_efx_set_efx_hf_reference() const;
+	void al_efx_set_efx_lf_reference() const;
+	void al_efx_set_efx_room_rolloff_factor() const;
+	void al_efx_set_efx_decay_hf_limit() const;
+
+	void al_efx_load_effect_into_effect_slot() const;
+
+	void al_efx_set_reverb(const EAXREVERBPROPERTIES& eax_props);
+	void al_efx_set_reverb_defaults();
+
+	void al_efx_disable_source_send_0_and_filters(ALuint source_id) const;
+
+	static void al_efx_calculate_occlusion(
+		const AlEfxEaxOcclusionPathParam& eax,
+		AlEfxLowPassFilterParam& efx);
+
+	static void al_efx_calculate_occlusion(
+		const AlEfxEaxOcclusionParam& eax,
+		AlEfxLowPassFilterParam& efx_direct,
+		AlEfxLowPassFilterParam& efx_send);
+
+	void al_efx_set_source_occlusion(idSoundChannel& sound_channel, long eax_occlusion);
+
+	static void al_efx_resolve_symbols(AlEfxSymbols& al_efx_symbols);
+	bool al_efx_initialize();
+
+	static bool al_efx_detect();
+#endif
+
 
 	static idCVar			s_noSound;
 	static idCVar			s_quadraticFalloff;
@@ -820,6 +951,12 @@ public:
 	static idCVar			s_reverbFeedback;
 	static idCVar			s_enviroSuitVolumeScale;
 	static idCVar			s_skipHelltimeFX;
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	static const char* const s_prefer_al_efx_cvar_name;
+	static idCVar s_prefer_al_efx_cvar;
+#endif
 };
 
 extern	idSoundSystemLocal	soundSystemLocal;

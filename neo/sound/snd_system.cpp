@@ -84,9 +84,24 @@ idCVar idSoundSystemLocal::s_muteEAXReverb( "s_muteEAXReverb", "0", CVAR_SOUND |
 idCVar idSoundSystemLocal::s_decompressionLimit( "s_decompressionLimit", "6", CVAR_SOUND | CVAR_INTEGER | CVAR_ROM, "specifies maximum uncompressed sample length in seconds" );
 #endif
 
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+const char* const idSoundSystemLocal::s_prefer_al_efx_cvar_name = "s_preferAlEfx";
+
+idCVar idSoundSystemLocal::s_prefer_al_efx_cvar(
+	s_prefer_al_efx_cvar_name,
+	"0",
+	CVAR_SOUND | CVAR_BOOL | CVAR_ARCHIVE,
+	"Prefer OpenAL EFX over OpenAL EAX");
+#endif
+
 bool idSoundSystemLocal::useOpenAL = false;
 bool idSoundSystemLocal::useEAXReverb = false;
 int idSoundSystemLocal::EAXAvailable = -1;
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+bool idSoundSystemLocal::al_efx_available = false;
+#endif
 
 idSoundSystemLocal	soundSystemLocal;
 idSoundSystem	*soundSystem  = &soundSystemLocal;
@@ -334,17 +349,66 @@ void idSoundSystemLocal::Init() {
 	common->StartupVariable( "s_useOpenAL", true );
 	common->StartupVariable( "s_useEAXReverb", true );
 
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	common->StartupVariable(s_prefer_al_efx_cvar_name, true);
+	al_efx_available = false;
+#endif
+
 	if ( idSoundSystemLocal::s_useOpenAL.GetBool() || idSoundSystemLocal::s_useEAXReverb.GetBool() ) {
 		if ( !Sys_LoadOpenAL() ) {
 			idSoundSystemLocal::s_useOpenAL.SetBool( false );
 		} else {
 			common->Printf( "Setup OpenAL device and context... " );
 			openalDevice = alcOpenDevice( NULL );
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			const bool prefer_al_efx = s_prefer_al_efx_cvar.GetBool();
+			const bool previous_s_useEAXReverb = s_useEAXReverb.GetBool();
+			ALubyte* const al_efx_ext_name = reinterpret_cast<ALubyte*>(const_cast<char*>(ALC_EXT_EFX_NAME));
+
+			const ALCboolean al_efx_ext_present =
+				(alcIsExtensionPresent(openalDevice, al_efx_ext_name) == ALC_TRUE);
+
+			if (al_efx_ext_present)
+			{
+				ALCint custom_attributes[] =
+				{
+					// Reserve at-least one aux send.
+					ALC_MAX_AUXILIARY_SENDS, 1,
+					0,
+				};
+
+				openalContext = alcCreateContext(openalDevice, custom_attributes);
+			}
+			else
+			{
+				openalContext = alcCreateContext(openalDevice, NULL);
+			}
+#else
 			openalContext = alcCreateContext( openalDevice, NULL );
+#endif
 			alcMakeContextCurrent( openalContext );
 			common->Printf( "Done.\n" );
 
 			// try to obtain EAX extensions
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			bool tried_efx = false;
+
+			if (previous_s_useEAXReverb && al_efx_ext_present && prefer_al_efx)
+			{
+				tried_efx = true;
+
+				if (al_efx_initialize())
+				{
+					s_useOpenAL.SetBool(true);
+				}
+			}
+
+			if (!al_efx_available)
+			{
+#endif
 			if ( idSoundSystemLocal::s_useEAXReverb.GetBool() && alIsExtensionPresent( ID_ALCHAR "EAX4.0" ) ) {
 				idSoundSystemLocal::s_useOpenAL.SetBool( true );	// EAX presence causes AL enable
 				alEAXSet = (EAXSet)alGetProcAddress( ID_ALCHAR "EAXSet" );
@@ -356,6 +420,10 @@ void idSoundSystemLocal::Init() {
 				alEAXSet = (EAXSet)NULL;
 				alEAXGet = (EAXGet)NULL;
 			}
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			}
+#endif
 
 			// try to obtain EAX-RAM extension - not required for operation
 			if ( alIsExtensionPresent( ID_ALCHAR "EAX-RAM" ) == AL_TRUE ) {
@@ -367,6 +435,28 @@ void idSoundSystemLocal::Init() {
 				alEAXGetBufferMode = (EAXGetBufferMode)NULL;
 				common->Printf( "OpenAL: no EAX-RAM extension\n" );
 			}
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			const bool current_s_useEAXReverb = s_useEAXReverb.GetBool();
+
+			if (previous_s_useEAXReverb &&
+				!current_s_useEAXReverb &&
+				!tried_efx &&
+				al_efx_ext_present)
+			{
+				if (al_efx_initialize())
+				{
+					s_useOpenAL.SetBool(true);
+					s_useEAXReverb.SetBool(true);
+				}
+			}
+
+			if (!current_s_useEAXReverb && !al_efx_available)
+			{
+				s_useEAXReverb.SetBool(false);
+			}
+#endif
 
 			if ( !idSoundSystemLocal::s_useOpenAL.GetBool() ) {
 				common->Printf( "OpenAL: disabling ( no EAX ). Using legacy mixer.\n" );
@@ -398,6 +488,19 @@ void idSoundSystemLocal::Init() {
 
 						// initialise sources
 						alSourcef( handle, AL_ROLLOFF_FACTOR, 0.0f );
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+						if (al_efx_available)
+						{
+							alSource3i(
+								handle,
+								AL_AUXILIARY_SEND_FILTER,
+								static_cast<ALint>(al_efx_effect_slot),
+								0,
+								AL_FILTER_NULL);
+						}
+#endif
 
 						// found one source
 						openalSourceCount++;
@@ -463,6 +566,28 @@ void idSoundSystemLocal::Shutdown() {
 			openalSources[i].looping = false;
 
 		}
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+		if (al_efx_symbols.alDeleteAuxiliaryEffectSlots != NULL)
+		{
+			al_efx_symbols.alDeleteAuxiliaryEffectSlots(1, &al_efx_effect_slot);
+		}
+
+		if (al_efx_symbols.alDeleteEffects != NULL)
+		{
+			al_efx_symbols.alDeleteEffects(1, &al_efx_effect);
+		}
+
+		if (al_efx_symbols.alDeleteFilters != NULL)
+		{
+			al_efx_symbols.alDeleteFilters(1, &al_efx_direct_filter);
+			al_efx_symbols.alDeleteFilters(1, &al_efx_send_filter);
+		}
+
+		al_efx_available = false;
+		al_efx_eax_reverb = false;
+#endif
 	}
 
 	// destroy all the sounds (hardware buffers as well)
@@ -1243,6 +1368,10 @@ void idSoundSystemLocal::FreeOpenALSource( ALuint handle ) {
 		if ( openalSources[i].handle == handle ) {
 			if ( openalSources[i].chan ) {
 				openalSources[i].chan->openalSource = NULL;
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+				openalSources[i].chan->al_efx_eax_occlusion_cached = false;
+#endif
 			}
 #if ID_OPENAL
 			// Reset source EAX ROOM level when freeing stereo source
@@ -1441,6 +1570,16 @@ int idSoundSystemLocal::IsEAXAvailable( void ) {
 		EAXAvailable = 2;
 		return 2;
 	}
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	const bool prefer_al_efx = s_prefer_al_efx_cvar.GetBool();
+
+	if (prefer_al_efx && al_efx_detect())
+	{
+		EAXAvailable = 1;
+		return 1;
+	}
+#endif
 	// when dynamically loading the OpenAL subsystem, we need to get a context before alIsExtensionPresent would work
 	device = alcOpenDevice( NULL );
 	context = alcCreateContext( device, NULL );
@@ -1455,7 +1594,1093 @@ int idSoundSystemLocal::IsEAXAvailable( void ) {
 	alcMakeContextCurrent( NULL );
 	alcDestroyContext( context );
 	alcCloseDevice( device );
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+	if (!prefer_al_efx && al_efx_detect())
+	{
+		EAXAvailable = 1;
+		return 1;
+	}
+#endif
 	EAXAvailable = 0;
 	return 0;
 #endif
 }
+
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+namespace {
+
+template<typename TSymbol>
+void al_efx_resolve_symbol(const char* symbol_name, TSymbol& symbol)
+{
+	ALubyte* al_symbol_name = reinterpret_cast<ALubyte*>(const_cast<char*>(symbol_name));
+	symbol = reinterpret_cast<TSymbol>(alGetProcAddress(al_symbol_name));
+
+	if (symbol == NULL)
+	{
+		throw symbol_name;
+	}
+}
+
+} // namespace
+
+ALfloat idSoundSystemLocal::al_efx_mb_to_gain(float mb)
+{
+	if (mb <= al_efx_min_eax_mb)
+	{
+		return 0.0F;
+	}
+
+	return std::pow(10.0F, mb / 2000.0F);
+}
+
+void idSoundSystemLocal::al_efx_initialize_mb_to_gain_lut()
+{
+	struct MbToGain
+	{
+		ALfloat operator()(int mb) const
+		{
+			if (mb <= idSoundSystemLocal::al_efx_min_eax_mb)
+			{
+				return 0.0F;
+			}
+
+			return static_cast<ALfloat>(pow(10.0, static_cast<double>(mb) / 2000.0));
+		}
+	};
+
+	MbToGain mb_to_gain;
+
+	for (int i = 0; i < al_efx_mb_to_gain_lut_size; ++i)
+	{
+		al_efx_mb_to_gain_lut[i] = al_efx_clamp(
+			mb_to_gain(al_efx_min_eax_mb + i),
+			AL_EAXREVERB_MIN_LATE_REVERB_GAIN,
+			AL_EAXREVERB_MAX_LATE_REVERB_GAIN);
+	}
+}
+
+ALfloat idSoundSystemLocal::al_efx_lookup_gain(long eax_mb) const
+{
+	const long lut_index = eax_mb - al_efx_min_eax_mb;
+	assert(lut_index >= 0 && lut_index < al_efx_mb_to_gain_lut_size);
+	return al_efx_mb_to_gain_lut[lut_index];
+}
+
+void idSoundSystemLocal::al_efx_set_efx_density() const
+{
+	// efx_density = min(pow(eax_environment_size, 3) / 16, 1)
+
+	const float eax_clamped = al_efx_clamp(
+		al_efx_eax_props.flEnvironmentSize,
+		EAXREVERB_MINENVIRONMENTSIZE,
+		EAXREVERB_MAXENVIRONMENTSIZE);
+
+	const ALfloat efx_unclamped = eax_clamped * eax_clamped * eax_clamped / 16.0F;
+
+	const ALfloat efx = al_efx_clamp(
+		efx_unclamped,
+		AL_EAXREVERB_MIN_DENSITY,
+		AL_EAXREVERB_MAX_DENSITY);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_DENSITY : AL_REVERB_DENSITY,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_diffusion() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flEnvironmentDiffusion,
+		EAXREVERB_MINENVIRONMENTDIFFUSION,
+		EAXREVERB_MAXENVIRONMENTDIFFUSION);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_DIFFUSION : AL_REVERB_DIFFUSION,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_gain() const
+{
+	const long eax_clamped = al_efx_clamp(
+		al_efx_eax_props.lRoom,
+		static_cast<long>(EAXREVERB_MINROOM),
+		static_cast<long>(EAXREVERB_MAXROOM));
+
+	const ALfloat efx = al_efx_lookup_gain(eax_clamped);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_GAIN : AL_REVERB_GAIN,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_gain_hf() const
+{
+	const long eax_clamped = al_efx_clamp(
+		al_efx_eax_props.lRoomHF,
+		static_cast<long>(EAXREVERB_MINROOMHF),
+		static_cast<long>(EAXREVERB_MAXROOMHF));
+
+	const ALfloat efx = al_efx_lookup_gain(eax_clamped);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_GAINHF : AL_REVERB_GAINHF,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_gain_lf() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const long eax_clamped = al_efx_clamp(
+		al_efx_eax_props.lRoomLF,
+		static_cast<long>(EAXREVERB_MINROOMLF),
+		static_cast<long>(EAXREVERB_MAXROOMLF));
+
+	const ALfloat efx = al_efx_lookup_gain(eax_clamped);
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_GAINLF, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_decay_time() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flDecayTime,
+		EAXREVERB_MINDECAYTIME,
+		EAXREVERB_MAXDECAYTIME);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_DECAY_TIME : AL_REVERB_DECAY_TIME,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_decay_hf_ratio() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flDecayHFRatio,
+		EAXREVERB_MINDECAYHFRATIO,
+		EAXREVERB_MAXDECAYHFRATIO);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_DECAY_HFRATIO : AL_REVERB_DECAY_HFRATIO,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_decay_lf_ratio() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flDecayLFRatio,
+		EAXREVERB_MINDECAYLFRATIO,
+		EAXREVERB_MAXDECAYLFRATIO);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_DECAY_LFRATIO, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_reflections_gain() const
+{
+	const long eax_clamped = al_efx_clamp(
+		al_efx_eax_props.lReflections,
+		static_cast<long>(EAXREVERB_MINREFLECTIONS),
+		static_cast<long>(EAXREVERB_MAXREFLECTIONS));
+
+	const ALfloat efx = al_efx_lookup_gain(eax_clamped);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_REFLECTIONS_GAIN : AL_REVERB_REFLECTIONS_GAIN,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_reflections_delay() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flReflectionsDelay,
+		EAXREVERB_MINREFLECTIONSDELAY,
+		EAXREVERB_MAXREFLECTIONSDELAY);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_REFLECTIONS_DELAY : AL_REVERB_REFLECTIONS_DELAY,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_reflections_pan() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	ALfloat efx[3] =
+	{
+		al_efx_eax_props.vReflectionsPan.x,
+		al_efx_eax_props.vReflectionsPan.y,
+		al_efx_eax_props.vReflectionsPan.z
+	};
+
+	al_efx_symbols.alEffectfv(al_efx_effect, AL_EAXREVERB_REFLECTIONS_PAN, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_late_reverb_gain() const
+{
+	const long eax_clamped = al_efx_clamp(
+		al_efx_eax_props.lReverb,
+		static_cast<long>(EAXREVERB_MINREVERB),
+		static_cast<long>(EAXREVERB_MAXREVERB));
+
+	const ALfloat efx = al_efx_lookup_gain(eax_clamped);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_LATE_REVERB_GAIN : AL_REVERB_LATE_REVERB_GAIN,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_late_reverb_delay() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flReverbDelay,
+		EAXREVERB_MINREVERBDELAY,
+		EAXREVERB_MAXREVERBDELAY);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_LATE_REVERB_DELAY : AL_REVERB_LATE_REVERB_DELAY,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_late_reverb_pan() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	ALfloat efx[3] =
+	{
+		al_efx_eax_props.vReverbPan.x,
+		al_efx_eax_props.vReverbPan.y,
+		al_efx_eax_props.vReverbPan.z
+	};
+
+	al_efx_symbols.alEffectfv(al_efx_effect, AL_EAXREVERB_LATE_REVERB_PAN, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_echo_time() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flEchoTime,
+		EAXREVERB_MINECHOTIME,
+		EAXREVERB_MAXECHOTIME);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_ECHO_TIME, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_echo_depth() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flEchoDepth,
+		EAXREVERB_MINECHODEPTH,
+		EAXREVERB_MAXECHODEPTH);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_ECHO_DEPTH, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_modulation_time() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flModulationTime,
+		EAXREVERB_MINMODULATIONTIME,
+		EAXREVERB_MAXMODULATIONTIME);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_MODULATION_TIME, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_modulation_depth() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flModulationDepth,
+		EAXREVERB_MINMODULATIONDEPTH,
+		EAXREVERB_MAXMODULATIONDEPTH);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_MODULATION_DEPTH, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_air_absorption_hf() const
+{
+	const float eax_clamped = al_efx_clamp(
+		al_efx_eax_props.flAirAbsorptionHF,
+		EAXREVERB_MINAIRABSORPTIONHF,
+		EAXREVERB_MAXAIRABSORPTIONHF);
+
+	const ALfloat efx_unclamped = al_efx_mb_to_gain(eax_clamped);
+
+	const ALfloat efx = al_efx_clamp(
+		efx_unclamped,
+		AL_EAXREVERB_MIN_AIR_ABSORPTION_GAINHF,
+		AL_EAXREVERB_MAX_AIR_ABSORPTION_GAINHF);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_AIR_ABSORPTION_GAINHF : AL_REVERB_AIR_ABSORPTION_GAINHF,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_hf_reference() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flHFReference,
+		EAXREVERB_MINHFREFERENCE,
+		EAXREVERB_MAXHFREFERENCE);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_HFREFERENCE, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_lf_reference() const
+{
+	if (!al_efx_eax_reverb)
+	{
+		return;
+	}
+
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flLFReference,
+		EAXREVERB_MINLFREFERENCE,
+		EAXREVERB_MAXLFREFERENCE);
+
+	al_efx_symbols.alEffectf(al_efx_effect, AL_EAXREVERB_LFREFERENCE, efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_room_rolloff_factor() const
+{
+	const ALfloat efx = al_efx_clamp(
+		al_efx_eax_props.flRoomRolloffFactor,
+		EAXREVERB_MINROOMROLLOFFFACTOR,
+		EAXREVERB_MAXROOMROLLOFFFACTOR);
+
+	al_efx_symbols.alEffectf(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_ROOM_ROLLOFF_FACTOR : AL_REVERB_ROOM_ROLLOFF_FACTOR,
+		efx);
+}
+
+void idSoundSystemLocal::al_efx_set_efx_decay_hf_limit() const
+{
+	const bool is_set = ((al_efx_eax_props.ulFlags & EAXREVERBFLAGS_DECAYHFLIMIT) != 0);
+
+	al_efx_symbols.alEffecti(
+		al_efx_effect,
+		al_efx_eax_reverb ? AL_EAXREVERB_DECAY_HFLIMIT : AL_REVERB_DECAY_HFLIMIT,
+		is_set ? AL_TRUE : AL_FALSE);
+}
+
+void idSoundSystemLocal::al_efx_load_effect_into_effect_slot() const
+{
+	al_efx_symbols.alAuxiliaryEffectSloti(
+		static_cast<ALint>(al_efx_effect_slot),
+		AL_EFFECTSLOT_EFFECT,
+		static_cast<ALint>(al_efx_effect));
+}
+
+void idSoundSystemLocal::al_efx_set_reverb(const EAXREVERBPROPERTIES& eax_props)
+{
+	assert((alGetError(), true));
+
+	bool changed = false;
+
+	const EAXREVERBPROPERTIES& src_props = eax_props;
+	EAXREVERBPROPERTIES& dst_props = al_efx_eax_props;
+
+	if (dst_props.flEnvironmentSize != src_props.flEnvironmentSize)
+	{
+		changed = true;
+		dst_props.flEnvironmentSize = src_props.flEnvironmentSize;
+		al_efx_set_efx_density();
+	}
+
+	if (dst_props.flEnvironmentDiffusion != src_props.flEnvironmentDiffusion)
+	{
+		changed = true;
+		dst_props.flEnvironmentDiffusion = src_props.flEnvironmentDiffusion;
+		al_efx_set_efx_diffusion();
+	}
+
+	if (dst_props.lRoom != src_props.lRoom)
+	{
+		changed = true;
+		dst_props.lRoom = src_props.lRoom;
+		al_efx_set_efx_gain();
+	}
+
+	if (dst_props.lRoomHF != src_props.lRoomHF)
+	{
+		changed = true;
+		dst_props.lRoomHF = src_props.lRoomHF;
+		al_efx_set_efx_gain_hf();
+	}
+
+	if (dst_props.lRoomLF != src_props.lRoomLF)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.lRoomLF = src_props.lRoomLF;
+		al_efx_set_efx_gain_lf();
+	}
+
+	if (dst_props.flDecayTime != src_props.flDecayTime)
+	{
+		changed = true;
+		dst_props.flDecayTime = src_props.flDecayTime;
+		al_efx_set_efx_decay_time();
+	}
+
+	if (dst_props.flDecayHFRatio != src_props.flDecayHFRatio)
+	{
+		changed = true;
+		dst_props.flDecayHFRatio = src_props.flDecayHFRatio;
+		al_efx_set_efx_decay_hf_ratio();
+	}
+
+	if (dst_props.flDecayLFRatio != src_props.flDecayLFRatio)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flDecayLFRatio = src_props.flDecayLFRatio;
+		al_efx_set_efx_decay_lf_ratio();
+	}
+
+	if (dst_props.lReflections != src_props.lReflections)
+	{
+		changed = true;
+		dst_props.lReflections = src_props.lReflections;
+		al_efx_set_efx_reflections_gain();
+	}
+
+	if (dst_props.flReflectionsDelay != src_props.flReflectionsDelay)
+	{
+		changed = true;
+		dst_props.flReflectionsDelay = src_props.flReflectionsDelay;
+		al_efx_set_efx_reflections_delay();
+	}
+
+	if (dst_props.vReflectionsPan.x != src_props.vReflectionsPan.x ||
+		dst_props.vReflectionsPan.y != src_props.vReflectionsPan.y ||
+		dst_props.vReflectionsPan.z != src_props.vReflectionsPan.z)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.vReflectionsPan.x = src_props.vReflectionsPan.x;
+		dst_props.vReflectionsPan.y = src_props.vReflectionsPan.y;
+		dst_props.vReflectionsPan.z = src_props.vReflectionsPan.z;
+		al_efx_set_efx_reflections_pan();
+	}
+
+	if (dst_props.lReverb != src_props.lReverb)
+	{
+		changed = true;
+		dst_props.lReverb = src_props.lReverb;
+		al_efx_set_efx_late_reverb_gain();
+	}
+
+	if (dst_props.flReverbDelay != src_props.flReverbDelay)
+	{
+		changed = true;
+		dst_props.flReverbDelay = src_props.flReverbDelay;
+		al_efx_set_efx_late_reverb_delay();
+	}
+
+	if (dst_props.vReverbPan.x != src_props.vReverbPan.x ||
+		dst_props.vReverbPan.y != src_props.vReverbPan.y ||
+		dst_props.vReverbPan.z != src_props.vReverbPan.z)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.vReverbPan.x = src_props.vReverbPan.x;
+		dst_props.vReverbPan.y = src_props.vReverbPan.y;
+		dst_props.vReverbPan.z = src_props.vReverbPan.z;
+		al_efx_set_efx_late_reverb_pan();
+	}
+
+	if (dst_props.flEchoTime != src_props.flEchoTime)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flEchoTime = src_props.flEchoTime;
+		al_efx_set_efx_echo_time();
+	}
+
+	if (dst_props.flEchoDepth != src_props.flEchoDepth)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flEchoDepth = src_props.flEchoDepth;
+		al_efx_set_efx_echo_depth();
+	}
+
+	if (dst_props.flModulationTime != src_props.flModulationTime)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flModulationTime = src_props.flModulationTime;
+		al_efx_set_efx_modulation_time();
+	}
+
+	if (dst_props.flModulationDepth != src_props.flModulationDepth)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flModulationDepth = src_props.flModulationDepth;
+		al_efx_set_efx_modulation_depth();
+	}
+
+	if (dst_props.flAirAbsorptionHF != src_props.flAirAbsorptionHF)
+	{
+		changed = true;
+		dst_props.flAirAbsorptionHF = src_props.flAirAbsorptionHF;
+		al_efx_set_efx_air_absorption_hf();
+	}
+
+	if (dst_props.flHFReference != src_props.flHFReference)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flHFReference = src_props.flHFReference;
+		al_efx_set_efx_hf_reference();
+	}
+
+	if (dst_props.flLFReference != src_props.flLFReference)
+	{
+		changed |= al_efx_eax_reverb;
+		dst_props.flLFReference = src_props.flLFReference;
+		al_efx_set_efx_lf_reference();
+	}
+
+	if (dst_props.flRoomRolloffFactor != src_props.flRoomRolloffFactor)
+	{
+		changed = true;
+		dst_props.flRoomRolloffFactor = src_props.flRoomRolloffFactor;
+		al_efx_set_efx_room_rolloff_factor();
+	}
+
+	if ((dst_props.ulFlags & EAXREVERBFLAGS_DECAYHFLIMIT) !=
+		(src_props.ulFlags & EAXREVERBFLAGS_DECAYHFLIMIT))
+	{
+		changed = true;
+		dst_props.ulFlags = src_props.ulFlags;
+		al_efx_set_efx_decay_hf_limit();
+	}
+
+	if (changed)
+	{
+		al_efx_load_effect_into_effect_slot();
+	}
+
+	assert(alGetError() == AL_NO_ERROR);
+}
+
+void idSoundSystemLocal::al_efx_set_reverb_defaults()
+{
+	const EAXVECTOR reflections_pan = EAXREVERB_DEFAULTREFLECTIONSPAN;
+	const EAXVECTOR reverb_pan = EAXREVERB_DEFAULTREVERBPAN;
+
+	al_efx_eax_props.ulEnvironment = EAXREVERB_DEFAULTENVIRONMENT;
+	al_efx_eax_props.flEnvironmentSize = EAXREVERB_DEFAULTENVIRONMENTSIZE;
+	al_efx_eax_props.flEnvironmentDiffusion = EAXREVERB_DEFAULTENVIRONMENTDIFFUSION;
+	al_efx_eax_props.lRoom = EAXREVERB_DEFAULTROOM;
+	al_efx_eax_props.lRoomHF = EAXREVERB_DEFAULTROOMHF;
+	al_efx_eax_props.lRoomLF = EAXREVERB_DEFAULTROOMLF;
+	al_efx_eax_props.flDecayTime = EAXREVERB_DEFAULTDECAYTIME;
+	al_efx_eax_props.flDecayHFRatio = EAXREVERB_DEFAULTDECAYHFRATIO;
+	al_efx_eax_props.flDecayLFRatio = EAXREVERB_DEFAULTDECAYLFRATIO;
+	al_efx_eax_props.lReflections = EAXREVERB_DEFAULTREFLECTIONS;
+	al_efx_eax_props.flReflectionsDelay = EAXREVERB_DEFAULTREFLECTIONSDELAY;
+	al_efx_eax_props.vReflectionsPan = reflections_pan;
+	al_efx_eax_props.lReverb = EAXREVERB_DEFAULTREVERB;
+	al_efx_eax_props.flReverbDelay = EAXREVERB_DEFAULTREVERBDELAY;
+	al_efx_eax_props.vReverbPan = reverb_pan;
+	al_efx_eax_props.flEchoTime = EAXREVERB_DEFAULTECHOTIME;
+	al_efx_eax_props.flEchoDepth = EAXREVERB_DEFAULTECHODEPTH;
+	al_efx_eax_props.flModulationTime = EAXREVERB_DEFAULTMODULATIONTIME;
+	al_efx_eax_props.flModulationDepth = EAXREVERB_DEFAULTMODULATIONDEPTH;
+	al_efx_eax_props.flAirAbsorptionHF = EAXREVERB_DEFAULTAIRABSORPTIONHF;
+	al_efx_eax_props.flHFReference = EAXREVERB_DEFAULTHFREFERENCE;
+	al_efx_eax_props.flLFReference = EAXREVERB_DEFAULTLFREFERENCE;
+	al_efx_eax_props.flRoomRolloffFactor = EAXREVERB_DEFAULTROOMROLLOFFFACTOR;
+	al_efx_eax_props.ulFlags = EAXREVERB_DEFAULTFLAGS;
+
+	assert((alGetError(), true));
+
+	al_efx_set_efx_density();
+	al_efx_set_efx_diffusion();
+	al_efx_set_efx_gain();
+	al_efx_set_efx_gain_hf();
+	al_efx_set_efx_gain_lf();
+	al_efx_set_efx_decay_time();
+	al_efx_set_efx_decay_hf_ratio();
+	al_efx_set_efx_decay_lf_ratio();
+	al_efx_set_efx_reflections_gain();
+	al_efx_set_efx_reflections_delay();
+	al_efx_set_efx_reflections_pan();
+	al_efx_set_efx_late_reverb_gain();
+	al_efx_set_efx_late_reverb_delay();
+	al_efx_set_efx_late_reverb_pan();
+	al_efx_set_efx_echo_time();
+	al_efx_set_efx_echo_depth();
+	al_efx_set_efx_modulation_time();
+	al_efx_set_efx_modulation_depth();
+	al_efx_set_efx_air_absorption_hf();
+	al_efx_set_efx_hf_reference();
+	al_efx_set_efx_lf_reference();
+	al_efx_set_efx_room_rolloff_factor();
+	al_efx_set_efx_decay_hf_limit();
+
+	al_efx_load_effect_into_effect_slot();
+
+	assert(alGetError() == AL_NO_ERROR);
+}
+
+void idSoundSystemLocal::al_efx_disable_source_send_0_and_filters(ALuint source_id) const
+{
+	alSourcei(source_id, AL_DIRECT_FILTER, AL_FILTER_NULL);
+	alSource3i(source_id, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+}
+
+void idSoundSystemLocal::al_efx_calculate_occlusion(
+	const AlEfxEaxOcclusionPathParam& eax,
+	AlEfxLowPassFilterParam& efx)
+{
+	const float occlusion = static_cast<float>(eax.occlusion);
+	const float ratio_1 = (eax.lf_ratio + eax.ratio) - 1.0F;
+	const float ratio_2 = eax.lf_ratio * eax.ratio;
+	const float ratio = (ratio_2 > ratio_1) ? ratio_2 : ratio_1;
+
+	efx.gain = al_efx_mb_to_gain(occlusion * ratio);
+	efx.gain_hf = al_efx_mb_to_gain(occlusion * eax.ratio);
+}
+
+void idSoundSystemLocal::al_efx_calculate_occlusion(
+	const AlEfxEaxOcclusionParam& eax,
+	AlEfxLowPassFilterParam& efx_direct,
+	AlEfxLowPassFilterParam& efx_send)
+{
+	if (eax.occlusion <= EAXSOURCE_MINOCCLUSION)
+	{
+		efx_direct.gain = 0.0F;
+		efx_direct.gain_hf = 0.0F;
+
+		efx_send.gain = 0.0F;
+		efx_send.gain_hf = 0.0F;
+
+		return;
+	}
+
+	if (eax.occlusion >= EAXSOURCE_MAXOCCLUSION)
+	{
+		efx_direct.gain = 1.0F;
+		efx_direct.gain_hf = 1.0F;
+
+		efx_send.gain = 1.0F;
+		efx_send.gain_hf = 1.0F;
+
+		return;
+	}
+
+	AlEfxEaxOcclusionPathParam eax_path;
+	eax_path.occlusion = eax.occlusion;
+	eax_path.lf_ratio = eax.occlusion_lf_ratio;
+
+	eax_path.ratio = eax.occlusion_direct_ratio;
+	al_efx_calculate_occlusion(eax_path, efx_direct);
+	efx_direct.gain = al_efx_clamp(efx_direct.gain, LOWPASS_MIN_GAIN, LOWPASS_MAX_GAIN);
+	efx_direct.gain_hf = al_efx_clamp(efx_direct.gain_hf, LOWPASS_MIN_GAINHF, LOWPASS_MAX_GAINHF);
+
+	eax_path.ratio = eax.occlusion_room_ratio;
+	al_efx_calculate_occlusion(eax_path, efx_send);
+	efx_send.gain = al_efx_clamp(efx_send.gain, LOWPASS_MIN_GAIN, LOWPASS_MAX_GAIN);
+	efx_send.gain_hf = al_efx_clamp(efx_send.gain_hf, LOWPASS_MIN_GAINHF, LOWPASS_MAX_GAINHF);
+}
+
+void idSoundSystemLocal::al_efx_set_source_occlusion(idSoundChannel& sound_channel, long eax_occlusion)
+{
+	if (!sound_channel.al_efx_enabled_send_0)
+	{
+		return;
+	}
+
+	if (sound_channel.al_efx_eax_occlusion_cached &&
+		sound_channel.al_efx_eax_occlusion_cache == eax_occlusion)
+	{
+		return;
+	}
+
+	assert((alGetError(), true));
+	sound_channel.al_efx_eax_occlusion_cached = true;
+	sound_channel.al_efx_eax_occlusion_cache = eax_occlusion;
+
+	AlEfxEaxOcclusionParam eax;
+	eax.occlusion = eax_occlusion;
+	eax.occlusion_lf_ratio = EAXSOURCE_DEFAULTOCCLUSIONLFRATIO;
+	eax.occlusion_room_ratio = EAXSOURCE_DEFAULTOCCLUSIONROOMRATIO;
+	eax.occlusion_direct_ratio = EAXSOURCE_DEFAULTOCCLUSIONDIRECTRATIO;
+
+	AlEfxLowPassFilterParam efx_direct;
+	AlEfxLowPassFilterParam efx_send;
+	al_efx_calculate_occlusion(eax, efx_direct, efx_send);
+
+	const ALuint& source_id = sound_channel.openalSource;
+
+	al_efx_symbols.alFilterf(al_efx_direct_filter, AL_LOWPASS_GAIN, efx_direct.gain);
+	al_efx_symbols.alFilterf(al_efx_direct_filter, AL_LOWPASS_GAINHF, efx_direct.gain_hf);
+	alSourcei(source_id, AL_DIRECT_FILTER, static_cast<ALint>(al_efx_direct_filter));
+
+	al_efx_symbols.alFilterf(al_efx_send_filter, AL_LOWPASS_GAIN, efx_send.gain);
+	al_efx_symbols.alFilterf(al_efx_send_filter, AL_LOWPASS_GAINHF, efx_send.gain_hf);
+
+	alSource3i(
+		source_id,
+		AL_AUXILIARY_SEND_FILTER,
+		static_cast<ALint>(al_efx_effect_slot),
+		0,
+		static_cast<ALint>(al_efx_send_filter));
+
+	assert(alGetError() == AL_NO_ERROR);
+}
+
+void idSoundSystemLocal::al_efx_resolve_symbols(AlEfxSymbols& al_efx_symbols)
+{
+	al_efx_resolve_symbol("alGenEffects", al_efx_symbols.alGenEffects);
+	al_efx_resolve_symbol("alDeleteEffects", al_efx_symbols.alDeleteEffects);
+	al_efx_resolve_symbol("alEffecti", al_efx_symbols.alEffecti);
+	al_efx_resolve_symbol("alEffectf", al_efx_symbols.alEffectf);
+	al_efx_resolve_symbol("alEffectfv", al_efx_symbols.alEffectfv);
+
+	al_efx_resolve_symbol("alGenFilters", al_efx_symbols.alGenFilters);
+	al_efx_resolve_symbol("alDeleteFilters", al_efx_symbols.alDeleteFilters);
+	al_efx_resolve_symbol("alFilteri", al_efx_symbols.alFilteri);
+	al_efx_resolve_symbol("alFilterf", al_efx_symbols.alFilterf);
+
+	al_efx_resolve_symbol("alGenAuxiliaryEffectSlots", al_efx_symbols.alGenAuxiliaryEffectSlots);
+	al_efx_resolve_symbol("alDeleteAuxiliaryEffectSlots", al_efx_symbols.alDeleteAuxiliaryEffectSlots);
+	al_efx_resolve_symbol("alAuxiliaryEffectSloti", al_efx_symbols.alAuxiliaryEffectSloti);
+	al_efx_resolve_symbol("alGetAuxiliaryEffectSloti", al_efx_symbols.alGetAuxiliaryEffectSloti);
+}
+
+bool idSoundSystemLocal::al_efx_initialize()
+{
+	common->Printf("%s: Initialize EFX\n", "OpenAL");
+	bool is_succeeded = true;
+
+	ALint major_version = 0;
+	ALint minor_version = 0;
+
+	if (is_succeeded)
+	{
+		alcGetIntegerv(openalDevice, ALC_EFX_MAJOR_VERSION, 1, &major_version);
+		alcGetIntegerv(openalDevice, ALC_EFX_MAJOR_VERSION, 1, &minor_version);
+
+		if (major_version <= 0)
+		{
+			is_succeeded = false;
+			common->Printf("%s: Unsupported version: %d.%d\n", "OpenAL", major_version, minor_version);
+		}
+	}
+
+	ALint max_sends = 0;
+
+	if (is_succeeded)
+	{
+		alcGetIntegerv(openalDevice, ALC_MAX_AUXILIARY_SENDS, 1, &max_sends);
+
+		if (max_sends <= 0)
+		{
+			is_succeeded = false;
+			common->Printf("%s: Not enough aux sends: %d\n", "OpenAL", max_sends);
+		}
+	}
+
+	if (is_succeeded)
+	{
+		try
+		{
+			al_efx_resolve_symbols(al_efx_symbols);
+		}
+		catch (const char* failed_symbol_name)
+		{
+			is_succeeded = false;
+			common->Printf("%s: Missing symbol: %s\n", "OpenAL", failed_symbol_name);
+		}
+	}
+
+	al_efx_effect_slot = AL_NONE;
+
+	if (is_succeeded)
+	{
+		alGetError();
+		al_efx_symbols.alGenAuxiliaryEffectSlots(1, &al_efx_effect_slot);
+
+		if (alGetError() != AL_NO_ERROR)
+		{
+			is_succeeded = false;
+			common->Printf("%s: Failed to create EFX effect slot\n", "OpenAL");
+		}
+	}
+
+	al_efx_effect = AL_NONE;
+
+	if (is_succeeded)
+	{
+		alGetError();
+		al_efx_symbols.alGenEffects(1, &al_efx_effect);
+
+		if (alGetError() == AL_NO_ERROR)
+		{
+			// Note: The order of alEffecti is important here.
+
+			al_efx_symbols.alEffecti(al_efx_effect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+			const bool has_std_reverb = (alGetError() == AL_NO_ERROR);
+
+			al_efx_symbols.alEffecti(al_efx_effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+			const bool has_eax_reverb = (alGetError() == AL_NO_ERROR);
+
+			if (has_eax_reverb)
+			{
+				al_efx_eax_reverb = true;
+			}
+			else if (has_std_reverb)
+			{
+				al_efx_eax_reverb = false;
+			}
+			else
+			{
+				is_succeeded = false;
+				common->Printf("%s: No reverb effect\n", "OpenAL");
+			}
+		}
+		else
+		{
+			is_succeeded = false;
+			common->Printf("%s: Failed to create an effect\n", "OpenAL");
+		}
+	}
+
+	al_efx_direct_filter = AL_FILTER_NULL;
+	al_efx_send_filter = AL_FILTER_NULL;
+
+	if (is_succeeded)
+	{
+		const int filter_count = 2;
+		ALuint filters[filter_count] = {AL_FILTER_NULL, AL_FILTER_NULL};
+
+		alGetError();
+		al_efx_symbols.alGenFilters(filter_count, filters);
+
+		if (alGetError() == AL_NO_ERROR)
+		{
+			for (int i = 0; is_succeeded && i < filter_count; ++i)
+			{
+				alGetError();
+				al_efx_symbols.alFilteri(filters[i], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+				const bool has_low_pass_filter = (alGetError() == AL_NO_ERROR);
+
+				if (!has_low_pass_filter)
+				{
+					is_succeeded = false;
+					common->Printf("%s: No low-pass filter\n", "OpenAL");
+				}
+			}
+
+			al_efx_direct_filter = filters[0];
+			al_efx_send_filter = filters[1];
+		}
+		else
+		{
+			is_succeeded = false;
+			common->Printf("%s: Failed to create a filter\n", "OpenAL");
+		}
+	}
+
+	if (is_succeeded)
+	{
+		al_efx_initialize_mb_to_gain_lut();
+		al_efx_set_reverb_defaults();
+	}
+
+	if (is_succeeded)
+	{
+		al_efx_available = true;
+
+		common->Printf("%s: Version: %d.%d\n", "OpenAL", major_version, minor_version);
+		common->Printf("%s: Max sends: %d\n", "OpenAL", max_sends);
+
+		common->Printf(
+			"%s: Reverb effect type: %s\n",
+			"OpenAL",
+			al_efx_eax_reverb ? "EAX" : "standard");
+
+		common->Printf("%s: EFX initialized\n", "OpenAL");
+	}
+	else
+	{
+		if (al_efx_symbols.alDeleteAuxiliaryEffectSlots != NULL)
+		{
+			al_efx_symbols.alDeleteAuxiliaryEffectSlots(1, &al_efx_effect_slot);
+		}
+
+		if (al_efx_symbols.alDeleteEffects != NULL)
+		{
+			al_efx_symbols.alDeleteEffects(1, &al_efx_effect);
+		}
+
+		if (al_efx_symbols.alDeleteFilters != NULL)
+		{
+			al_efx_symbols.alDeleteFilters(1, &al_efx_direct_filter);
+			al_efx_symbols.alDeleteFilters(1, &al_efx_send_filter);
+		}
+
+		common->Printf("%s: EFX failed\n", "OpenAL");
+	}
+
+	return al_efx_available;
+}
+
+bool idSoundSystemLocal::al_efx_detect()
+{
+	ALint context_attributes[] =
+	{
+		ALC_MAX_AUXILIARY_SENDS, 1,
+		0
+	};
+
+	ALCdevice* const device = alcOpenDevice(NULL);
+	ALCcontext* const context = alcCreateContext(device, context_attributes);
+	alcMakeContextCurrent(context);
+
+	const bool has_extension = (alcIsExtensionPresent(
+		device,
+		reinterpret_cast<ALubyte*>(const_cast<char*>(ALC_EXT_EFX_NAME))) == ALC_TRUE);
+
+	ALint major_version = 0;
+	alcGetIntegerv(device, ALC_EFX_MAJOR_VERSION, 1, &major_version);
+	
+	ALint max_sends = 0;
+	alcGetIntegerv(device, ALC_MAX_AUXILIARY_SENDS, 1, &max_sends);
+
+	AlEfxSymbols symbols = AlEfxSymbols();
+	bool has_failed_symbol_name = false;
+
+	try
+	{
+		al_efx_resolve_symbols(symbols);
+	}
+	catch (const char*)
+	{
+		has_failed_symbol_name = true;
+	}
+
+	bool has_effect_slot = false;
+
+	if (symbols.alGenAuxiliaryEffectSlots != NULL &&
+		symbols.alDeleteAuxiliaryEffectSlots != NULL &&
+		symbols.alAuxiliaryEffectSloti != NULL &&
+		symbols.alGetAuxiliaryEffectSloti != NULL)
+	{
+		ALuint effect_slot = AL_NONE;
+		alGetError();
+		symbols.alGenAuxiliaryEffectSlots(1, &effect_slot);
+		has_effect_slot = (alGetError() == AL_NO_ERROR);
+
+		if (has_effect_slot)
+		{
+			symbols.alDeleteAuxiliaryEffectSlots(1, &effect_slot);
+		}
+	}
+
+	bool has_eax_reverb = false;
+	bool has_std_reverb = false;
+
+	if (symbols.alGenEffects != NULL &&
+		symbols.alDeleteEffects != NULL &&
+		symbols.alEffecti != NULL &&
+		symbols.alEffectf != NULL &&
+		symbols.alEffectfv != NULL)
+	{
+		ALuint effect = AL_NONE;
+		alGetError();
+		symbols.alGenEffects(1, &effect);
+
+		if (alGetError() == AL_NO_ERROR)
+		{
+			symbols.alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+			has_eax_reverb = (alGetError() == AL_NO_ERROR);
+
+			symbols.alEffecti(effect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+			has_std_reverb = (alGetError() == AL_NO_ERROR);
+
+			symbols.alDeleteEffects(1, &effect);
+		}
+	}
+
+	bool has_low_pass_filter = false;
+
+	if (symbols.alGenFilters != NULL &&
+		symbols.alDeleteFilters != NULL &&
+		symbols.alFilteri != NULL &&
+		symbols.alFilterf != NULL)
+	{
+		ALuint filter = AL_NONE;
+		alGetError();
+		symbols.alGenFilters(1, &filter);
+
+		if (alGetError() == AL_NO_ERROR)
+		{
+			symbols.alFilteri(filter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+			has_low_pass_filter = (alGetError() == AL_NO_ERROR);
+
+			symbols.alDeleteFilters(1, &filter);
+		}
+	}
+
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(context);
+	alcCloseDevice(device);
+
+	return
+		has_extension &&
+		major_version > 0 &&
+		max_sends > 0 &&
+		!has_failed_symbol_name &&
+		has_effect_slot &&
+		(has_eax_reverb || has_std_reverb) &&
+		has_low_pass_filter;
+}
+#endif

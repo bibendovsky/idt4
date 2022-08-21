@@ -477,6 +477,13 @@ void idSoundWorldLocal::MixLoop( int current44kHz, int numSpeakers, float *final
 						if ( soundSystemLocal.alEAXSet ) {
 							soundSystemLocal.alEAXSet( &EAXPROPERTYID_EAX_FXSlot0, EAXREVERB_ALLPARAMETERS, 0, &EnvironmentParameters, sizeof( EnvironmentParameters ) );
 						}
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+						else if (soundSystemLocal.al_efx_available)
+						{
+							soundSystemLocal.al_efx_set_reverb(EnvironmentParameters);
+						}
+#endif
 					}
 					listenerEnvironmentID = EnvironmentID;
 				}
@@ -1721,6 +1728,16 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 	if ( idSoundSystemLocal::useOpenAL && sound->removeStatus < REMOVE_STATUS_SAMPLEFINISHED ) {
 		if ( !alIsSource( chan->openalSource ) ) {
 			chan->openalSource = soundSystemLocal.AllocOpenALSource( chan, !chan->leadinSample->hardwareBuffer || !chan->soundShader->entries[0]->hardwareBuffer || looping, chan->leadinSample->objectInfo.nChannels == 2 );
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			chan->al_efx_enabled_send_0 = (chan->leadinSample->objectInfo.nChannels == 1);
+			chan->al_efx_eax_occlusion_cached = false;
+
+			if (soundSystemLocal.al_efx_available && !chan->al_efx_enabled_send_0)
+			{
+				soundSystemLocal.al_efx_disable_source_send_0_and_filters(chan->openalSource);
+			}
+#endif
 		}
 
 		if ( alIsSource( chan->openalSource ) ) {
@@ -1751,6 +1768,13 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 			if ( soundSystemLocal.alEAXSet ) {
 				soundSystemLocal.alEAXSet( &EAXPROPERTYID_EAX_Source, EAXSOURCE_OCCLUSION, chan->openalSource, &lOcclusion, sizeof(lOcclusion) );
 			}
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+			else if (soundSystemLocal.al_efx_available)
+			{
+				soundSystemLocal.al_efx_set_source_occlusion(*chan, lOcclusion);
+			}
+#endif
 #endif
 			if ( ( !looping && chan->leadinSample->hardwareBuffer ) || ( looping && chan->soundShader->entries[0]->hardwareBuffer ) ) {
 				// handle uncompressed (non streaming) single shot and looping sounds

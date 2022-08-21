@@ -32,6 +32,20 @@ extern ALvoid ( ALAPIENTRY * idalGenSources )( ALsizei, ALuint * );
 extern ALvoid ( ALAPIENTRY * idalSourcef )( ALuint, ALenum, ALfloat );
 extern ALvoid ( ALAPIENTRY * idalSourceUnqueueBuffers )( ALuint, ALsizei, ALuint * );
 extern ALvoid ( ALAPIENTRY * idalSourcePlay )( ALuint );
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+typedef ALCenum (ALAPIENTRY * LPIDALCGETERROR)(ALCdevice* device);
+typedef ALboolean (ALAPIENTRY * LPIDALCISEXTENSIONPRESENT)(ALCdevice*, ALubyte*);
+typedef ALCdevice* (ALAPIENTRY * LPIDALCGETCONTEXTSDEVICE)(ALCcontext*);
+typedef void (ALAPIENTRY * LPIDALCGETINTEGERV)(ALCdevice*, ALCenum, ALCsizei, ALCint*);
+typedef void (ALAPIENTRY * LPIDALSOURCE3I)(ALuint, ALenum, ALint, ALint, ALint);
+
+extern LPIDALCGETERROR idalcGetError;
+extern LPIDALCISEXTENSIONPRESENT idalcIsExtensionPresent;
+extern LPIDALCGETCONTEXTSDEVICE idalcGetContextsDevice;
+extern LPIDALCGETINTEGERV idalcGetIntegerv;
+extern LPIDALSOURCE3I idalSource3i;
+#endif
 
 #define alGetError idalGetError
 #define alGenBuffers idalGenBuffers
@@ -63,3 +77,11 @@ extern ALvoid ( ALAPIENTRY * idalSourcePlay )( ALuint );
 #define alSourcef idalSourcef
 #define alSourceUnqueueBuffers idalSourceUnqueueBuffers
 #define alSourcePlay idalSourcePlay
+// IDT4-FEATURE-OPENAL-EFX
+#ifndef IDT4_VANILLA
+#define alcGetError idalcGetError
+#define alcIsExtensionPresent idalcIsExtensionPresent
+#define alcGetContextsDevice idalcGetContextsDevice
+#define alcGetIntegerv idalcGetIntegerv
+#define alSource3i idalSource3i
+#endif
