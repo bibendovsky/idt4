@@ -908,6 +908,12 @@ public:
 	static bool al_efx_detect();
 #endif
 
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+public:
+	void limiter_process(float* samples, int sample_count) const;
+#endif
+
 
 	static idCVar			s_noSound;
 	static idCVar			s_quadraticFalloff;
@@ -956,6 +962,12 @@ public:
 #ifndef IDT4_VANILLA
 	static const char* const s_prefer_al_efx_cvar_name;
 	static idCVar s_prefer_al_efx_cvar;
+#endif
+
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+	static const char* const s_limiter_cvar_name;
+	static idCVar s_limiter_cvar;
 #endif
 };
 
