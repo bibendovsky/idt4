@@ -95,6 +95,16 @@ idCVar idSoundSystemLocal::s_prefer_al_efx_cvar(
 	"Prefer OpenAL EFX over OpenAL EAX");
 #endif
 
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+const char* const idSoundSystemLocal::s_limiter_cvar_name = "s_limiter";
+idCVar idSoundSystemLocal::s_limiter_cvar(
+	s_limiter_cvar_name,
+	"0",
+	CVAR_SOUND | CVAR_BOOL | CVAR_ARCHIVE,
+	"Use audio limiter with a current volume as threshold.");
+#endif
+
 bool idSoundSystemLocal::useOpenAL = false;
 bool idSoundSystemLocal::useEAXReverb = false;
 int idSoundSystemLocal::EAXAvailable = -1;
@@ -840,6 +850,10 @@ int idSoundSystemLocal::AsyncUpdate( int inTime ) {
 		// disable audio hardware caching (this updates ALL settings since last alcSuspendContext)
 		alcProcessContext( openalContext );
 	} else {
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+		limiter_process(finalMixBuffer, MIXBUFFER_SAMPLES * numSpeakers);
+#endif
 		short *dest = fBlock + nextWriteSamples * numSpeakers;
 
 		SIMDProcessor->MixedSoundToSamples( dest, finalMixBuffer, MIXBUFFER_SAMPLES * numSpeakers );
@@ -914,6 +928,10 @@ int idSoundSystemLocal::AsyncUpdateWrite( int inTime ) {
 		// disable audio hardware caching (this updates ALL settings since last alcSuspendContext)
 		alcProcessContext( openalContext );
 	} else {
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+		limiter_process(finalMixBuffer, MIXBUFFER_SAMPLES * numSpeakers);
+#endif
 		short *dest = snd_audio_hw->GetMixBuffer();
 
 		SIMDProcessor->MixedSoundToSamples( dest, finalMixBuffer, MIXBUFFER_SAMPLES * numSpeakers );
@@ -2682,5 +2700,34 @@ bool idSoundSystemLocal::al_efx_detect()
 		has_effect_slot &&
 		(has_eax_reverb || has_std_reverb) &&
 		has_low_pass_filter;
+}
+#endif
+
+// IDT4-FEATURE-AUDIO-LIMITER
+#ifndef IDT4_VANILLA
+void idSoundSystemLocal::limiter_process(float* samples, int sample_count) const
+{
+	if (!s_limiter_cvar.GetBool())
+	{
+		return;
+	}
+
+	static const float min_sample = -32768.0F;
+	static const float max_sample = +32767.0F;
+	static const float max_amplitude = max_sample - min_sample;
+	const float volume = dB2Scale(s_volume.GetFloat());
+	const float threshold = max_amplitude * volume;
+	float sample_min = 0.0F;
+	float sample_max = 0.0F;
+	SIMDProcessor->MinMax(sample_min, sample_max, samples, sample_count);
+	const float amplitude = sample_max - sample_min;
+
+	if (amplitude <= threshold)
+	{
+		return;
+	}
+
+	const float scale_factor = threshold / amplitude;
+	SIMDProcessor->MulAssign16(samples, scale_factor, sample_count);
 }
 #endif
