@@ -313,6 +313,216 @@ Sys_GetVideoRam
 returns in megabytes
 ================
 */
+// IDT4-FIX-D3-BUG-004
+#ifndef IDT4_VANILLA
+int Sys_GetVideoRam()
+{
+#ifdef ID_DEDICATED
+	return 0;
+#else
+	const DWORD max_display_devices = ~DWORD();
+	DISPLAY_DEVICEW display_device;
+	display_device.cb = static_cast<DWORD>(sizeof(DISPLAY_DEVICEW));
+
+	bool found_display_device = false;
+
+	for (DWORD i = 0; i < max_display_devices; ++i)
+	{
+		const BOOL enum_display_devices_result = EnumDisplayDevicesW(NULL, i, &display_device, 0);
+
+		if (enum_display_devices_result == FALSE)
+		{
+			break;
+		}
+
+		if ((display_device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) == 0 ||
+			(display_device.StateFlags & (DISPLAY_DEVICE_MIRRORING_DRIVER | DISPLAY_DEVICE_REMOVABLE)) != 0)
+		{
+			continue;
+		}
+
+		found_display_device = true;
+		break;
+	}
+
+	if (!found_display_device)
+	{
+		return 0;
+	}
+
+	HRESULT hresult;
+	IWbemLocator* wbem_locator = NULL;
+	bool got_memory = false;
+	DWORD wbem_size_mb = 0;
+
+	const HRESULT co_initialize_result = CoInitialize(NULL);
+
+	hresult = CoCreateInstance(
+		CLSID_WbemLocator,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IWbemLocator,
+		reinterpret_cast<LPVOID*>(&wbem_locator));
+
+	if (SUCCEEDED(hresult) && wbem_locator != NULL)
+	{
+		const BSTR wbem_object_path = SysAllocString(L"\\\\.\\root\\cimv2");
+
+		IWbemServices* wbem_services = NULL;
+
+		hresult = wbem_locator->ConnectServer(
+			wbem_object_path,
+			NULL,
+			NULL,
+			NULL,
+			0,
+			NULL,
+			NULL,
+			&wbem_services);
+
+		if (SUCCEEDED(hresult) && wbem_services != NULL)
+		{
+			const HMODULE ole32_module = LoadLibraryW(L"ole32.dll");
+
+			if (ole32_module != NULL)
+			{
+				typedef HRESULT (WINAPI * COSETPROXYBLANKETFUNC_)(
+					IUnknown* pProxy,
+					DWORD dwAuthnSvc,
+					DWORD dwAuthzSvc,
+					OLECHAR* pServerPrincName,
+					DWORD dwAuthnLevel,
+					DWORD dwImpLevel,
+					RPC_AUTH_IDENTITY_HANDLE pAuthInfo,
+					DWORD dwCapabilities);
+
+				COSETPROXYBLANKETFUNC_ CoSetProxyBlanket_ = reinterpret_cast<COSETPROXYBLANKETFUNC_>(
+					GetProcAddress(ole32_module, "CoSetProxyBlanket"));
+
+				if (CoSetProxyBlanket_ != NULL)
+				{
+					// Switch security level to IMPERSONATE.
+					CoSetProxyBlanket_(
+						wbem_services,
+						RPC_C_AUTHN_WINNT,
+						RPC_C_AUTHZ_NONE,
+						NULL,
+						RPC_C_AUTHN_LEVEL_CALL,
+						RPC_C_IMP_LEVEL_IMPERSONATE,
+						NULL,
+						0);
+				}
+
+				FreeLibrary(ole32_module);
+			}
+
+			const BSTR wbem_class_name = SysAllocString(L"Win32_VideoController");
+			IEnumWbemClassObject* wbem_video_controllers = NULL;
+			hresult = wbem_services->CreateInstanceEnum(wbem_class_name, 0, NULL, &wbem_video_controllers);
+
+			if (SUCCEEDED(hresult) && wbem_video_controllers != NULL)
+			{
+				const BSTR pnp_device_id_prop_name = SysAllocString(L"PNPDeviceID");
+				const BSTR adapter_ram_prop_name = SysAllocString(L"AdapterRAM");
+
+				bool found_video_controller = false;
+				wbem_video_controllers->Reset();
+
+				while (!found_video_controller)
+				{
+					ULONG next_count = 0;
+					IWbemClassObject* wbem_display_controller = NULL;
+
+					hresult = wbem_video_controllers->Next(
+						5000,
+						1,
+						&wbem_display_controller,
+						&next_count);
+
+					if (SUCCEEDED(hresult) && next_count == 1)
+					{
+						VARIANT var;
+						VariantInit(&var);
+
+						hresult = wbem_display_controller->Get(pnp_device_id_prop_name, 0L, &var, NULL, NULL);
+
+						if (SUCCEEDED(hresult))
+						{
+							if (wcsstr(var.bstrVal, display_device.DeviceID) != NULL)
+							{
+								found_video_controller = true;
+							}
+						}
+
+						VariantClear(&var);
+
+						if (found_video_controller)
+						{
+							hresult = wbem_display_controller->Get(adapter_ram_prop_name, 0L, &var, NULL, NULL);
+
+							if (SUCCEEDED(hresult))
+							{
+								got_memory = true;
+								wbem_size_mb = var.ulVal / (1024 * 1024);
+							}
+
+							VariantClear(&var);
+						}
+
+						wbem_display_controller->Release();
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				SysFreeString(pnp_device_id_prop_name);
+				SysFreeString(adapter_ram_prop_name);
+			}
+
+			if (wbem_video_controllers != NULL)
+			{
+				wbem_video_controllers->Release();
+			}
+
+			SysFreeString(wbem_class_name);
+		}
+
+		if (wbem_services != NULL)
+		{
+			wbem_services->Release();
+		}
+
+		SysFreeString(wbem_object_path);
+	}
+
+	if (wbem_locator != NULL)
+	{
+		wbem_locator->Release();
+	}
+
+	if (SUCCEEDED(co_initialize_result))
+	{
+		CoUninitialize();
+	}
+
+	if (!got_memory)
+	{
+		return 0;
+	}
+
+	int size_mb = static_cast<int>(wbem_size_mb);
+
+	if (size_mb <= 0)
+	{
+		size_mb = 1;
+	}
+
+	return size_mb;
+#endif
+}
+#else
 int Sys_GetVideoRam( void ) {
 #ifdef	ID_DEDICATED
 	return 0;
@@ -365,6 +575,7 @@ int Sys_GetVideoRam( void ) {
 	return retSize;
 #endif
 }
+#endif
 
 /*
 ================
