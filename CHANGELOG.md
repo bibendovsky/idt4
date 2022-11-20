@@ -5,6 +5,9 @@
 ### Added
 - Borderless mode.
 
+### Fixed
+[D3] Bug 003 (OpenAL Deleting attached buffer).
+
 
 ## [1.0.0] - 2022-09-09
 ### Added

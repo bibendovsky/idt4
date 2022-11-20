@@ -646,11 +646,15 @@ void idSoundSample::PurgeSoundSample() {
 			{
 				openalSource_t& openalSource = soundSystemLocal.openalSources[i];
 
-				if (!openalSource.inUse ||
-					openalSource.chan == NULL ||
-					openalSource.chan->leadinSample == NULL ||
-					openalSource.chan->leadinSample->openalBuffer == AL_NONE ||
-					openalSource.chan->leadinSample->openalBuffer != openalBuffer)
+				if (!openalSource.inUse)
+				{
+					continue;
+				}
+
+				ALint al_current_buffer = AL_NONE;
+				alGetSourcei(openalSource.handle, AL_BUFFER, &al_current_buffer);
+
+				if (openalBuffer != static_cast<ALuint>(al_current_buffer))
 				{
 					continue;
 				}
