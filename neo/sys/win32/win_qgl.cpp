@@ -2809,3 +2809,30 @@ void GLimp_EnableLogging( bool enable ) {
 		qglViewport                  = 	dllViewport                  ;
 	}
 }
+
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+bool glimp_get_desktop_size(int& width, int& height)
+{
+	const HWND desktop_window = GetDesktopWindow();
+	const HDC hdc = GetDC(desktop_window);
+
+	if (hdc == NULL)
+	{
+		return false;
+	}
+
+	const int horzres = GetDeviceCaps(hdc, HORZRES);
+	const int vertres = GetDeviceCaps(hdc, VERTRES);
+	ReleaseDC(desktop_window, hdc);
+
+	if (horzres <= 0 || vertres <= 0)
+	{
+		return false;
+	}
+
+	width = horzres;
+	height = vertres;
+	return true;
+}
+#endif

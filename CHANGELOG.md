@@ -1,6 +1,11 @@
 # IDT4 changelog
 
 
+## [?.?.?] - ????-??-??
+### Added
+- Borderless mode.
+
+
 ## [1.0.0] - 2022-09-09
 ### Added
 - OpenAL EFX.

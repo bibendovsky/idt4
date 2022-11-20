@@ -987,6 +987,11 @@ extern idCVar r_materialOverride;		// override all materials
 
 extern idCVar r_debugRenderToTexture;
 
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+extern idCVar r_prefer_borderless_cvar;
+#endif
+
 /*
 ====================================================================
 
@@ -1074,6 +1079,10 @@ typedef struct {
 	bool		stereo;
 	int			displayHz;
 	int			multiSamples;
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+	bool prefer_borderless;
+#endif
 } glimpParms_t;
 
 bool		GLimp_Init( glimpParms_t parms );
@@ -1121,6 +1130,10 @@ void		GLimp_DeactivateContext( void );
 
 void		GLimp_EnableLogging( bool enable );
 
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+bool glimp_get_desktop_size(int& width, int& height);
+#endif
 
 /*
 ====================================================================

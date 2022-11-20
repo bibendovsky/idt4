@@ -221,6 +221,15 @@ idCVar r_materialOverride( "r_materialOverride", "", CVAR_RENDERER, "overrides a
 
 idCVar r_debugRenderToTexture( "r_debugRenderToTexture", "0", CVAR_RENDERER | CVAR_INTEGER, "" );
 
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+idCVar r_prefer_borderless_cvar(
+	"r_preferBorderless",
+	"0",
+	CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL,
+	"Prefer borderless mode over the full screen exclusive one.");
+#endif
+
 void ( APIENTRY * qglMultiTexCoord2fARB )( GLenum texture, GLfloat s, GLfloat t );
 void ( APIENTRY * qglMultiTexCoord2fvARB )( GLenum texture, GLfloat *st );
 void ( APIENTRY * qglActiveTextureARB )( GLenum texture );
@@ -637,12 +646,36 @@ void R_InitOpenGL( void ) {
 		// set the parameters we are trying
 		R_GetModeInfo( &glConfig.vidWidth, &glConfig.vidHeight, r_mode.GetInteger() );
 
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+		bool prefer_borderless = false;
+
+		if (r_fullscreen.GetBool() && r_prefer_borderless_cvar.GetBool())
+		{
+			int desktop_width = 0;
+			int desktop_height = 0;
+			const bool found_desktop_size = glimp_get_desktop_size(desktop_width, desktop_height);
+
+			if (found_desktop_size)
+			{
+				prefer_borderless = true;
+				glConfig.vidWidth = desktop_width;
+				glConfig.vidHeight = desktop_height;
+			}
+		}
+#endif
+
 		parms.width = glConfig.vidWidth;
 		parms.height = glConfig.vidHeight;
 		parms.fullScreen = r_fullscreen.GetBool();
 		parms.displayHz = r_displayRefresh.GetInteger();
 		parms.multiSamples = r_multiSamples.GetInteger();
 		parms.stereo = false;
+
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+		parms.prefer_borderless = prefer_borderless;
+#endif
 
 		if ( GLimp_Init( parms ) ) {
 			// it worked
@@ -1938,6 +1971,10 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 		parms.displayHz = r_displayRefresh.GetInteger();
 		parms.multiSamples = r_multiSamples.GetInteger();
 		parms.stereo = false;
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+		parms.prefer_borderless = r_prefer_borderless_cvar.GetBool();
+#endif
 		GLimp_SetScreenParms( parms );
 	}
 

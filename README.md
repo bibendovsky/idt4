@@ -18,7 +18,8 @@ Contents
    3.1 Doom 3 (2004)
 4. Features  
    4.1 OpenAL EFX  
-   4.2 Audio limiter
+   4.2 Audio limiter  
+   4.3 Borderless mode
 5. Links
 
 
@@ -117,6 +118,17 @@ _!!! Not available for OpenAL backend !!!_
 New CVARs:
 - `s_limiter <0|1>`  
   Enables the limiter if `value` set to `1`.  
+  Default value: `0`
+
+
+4.3 - Borderless mode
+=====================
+
+Creates a borderless window of desktop size without changing the display mode.
+
+New CVARs:
+- `r_preferBorderless <0|1>`  
+  Tries to use borderless mode if value set to `1` and CVAR `r_fullscreen` set to `1`.  
   Default value: `0`
 
 

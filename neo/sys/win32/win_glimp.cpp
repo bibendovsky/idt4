@@ -566,6 +566,15 @@ static bool GLW_CreateWindow( glimpParms_t parms ) {
 		exstyle = WS_EX_TOPMOST;
 		stylebits = WS_POPUP|WS_VISIBLE|WS_SYSMENU;
 
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+		if (parms.prefer_borderless)
+		{
+			exstyle = 0;
+			stylebits = WS_POPUP | WS_VISIBLE;
+		}
+#endif
+
 		x = 0;
 		y = 0;
 		w = parms.width;
@@ -677,6 +686,13 @@ GLW_SetFullScreen
 ===================
 */
 static bool GLW_SetFullScreen( glimpParms_t parms ) {
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+	if (parms.prefer_borderless)
+	{
+		return ChangeDisplaySettingsW(NULL, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
+	}
+#endif
 #if 0
 	// for some reason, bounds checker claims that windows is
 	// writing past the bounds of dm in the get display frequency call
@@ -884,6 +900,14 @@ bool GLimp_SetScreenParms( glimpParms_t parms ) {
 	if ( parms.fullScreen ) {
 		exstyle = WS_EX_TOPMOST;
 		stylebits = WS_POPUP|WS_VISIBLE|WS_SYSMENU;
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+		if (parms.prefer_borderless)
+		{
+			exstyle = 0;
+			stylebits = WS_POPUP | WS_VISIBLE;
+		}
+#endif
 		SetWindowLong( win32.hWnd, GWL_STYLE, stylebits );
 		SetWindowLong( win32.hWnd, GWL_EXSTYLE, exstyle );
 		dm.dmPelsWidth  = parms.width;
@@ -929,8 +953,40 @@ bool GLimp_SetScreenParms( glimpParms_t parms ) {
 		SetWindowLong( win32.hWnd, GWL_EXSTYLE, exstyle );
 		common->Printf( "%i %i %i %i\n", x, y, w, h );
 	}
+// IDT4-D3-FEATURE-BORDERLESS
+#ifndef IDT4_VANILLA
+	bool ret = false;
+
+	if (parms.fullScreen && parms.prefer_borderless)
+	{
+		ret = (ChangeDisplaySettingsW(NULL, 0) == DISP_CHANGE_SUCCESSFUL);
+
+		SetWindowPos(
+			win32.hWnd,
+			HWND_TOPMOST,
+			x,
+			y,
+			w,
+			h,
+			SWP_NOSIZE | SWP_NOMOVE);
+	}
+	else
+	{
+		ret = (ChangeDisplaySettingsA(&dm, parms.fullScreen ? CDS_FULLSCREEN : 0) == DISP_CHANGE_SUCCESSFUL);
+
+		SetWindowPos(
+			win32.hWnd,
+			parms.fullScreen ? HWND_TOPMOST : HWND_NOTOPMOST,
+			x,
+			y,
+			w,
+			h,
+			parms.fullScreen ? SWP_NOSIZE | SWP_NOMOVE : SWP_SHOWWINDOW);
+	}
+#else
 	bool ret = ( ChangeDisplaySettings( &dm, parms.fullScreen ? CDS_FULLSCREEN : 0 ) == DISP_CHANGE_SUCCESSFUL );
 	SetWindowPos( win32.hWnd, parms.fullScreen ? HWND_TOPMOST : HWND_NOTOPMOST, x, y, w, h, parms.fullScreen ? SWP_NOSIZE | SWP_NOMOVE : SWP_SHOWWINDOW );
+#endif
 	return ret;
 }
 
