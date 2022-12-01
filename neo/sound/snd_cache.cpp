@@ -646,7 +646,7 @@ void idSoundSample::PurgeSoundSample() {
 			{
 				openalSource_t& openalSource = soundSystemLocal.openalSources[i];
 
-				if (!openalSource.inUse)
+				if (!openalSource.inUse || openalSource.chan == NULL)
 				{
 					continue;
 				}
