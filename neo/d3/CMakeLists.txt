@@ -485,7 +485,7 @@ target_sources(${PROJECT_NAME}
 	PRIVATE
 		../sys/win32/rc/res/PropTree.rc2
 		../sys/win32/rc/doom.rc
-		../sys/win32/idt4.manifest
+		$<IF:$<VERSION_GREATER:${MSVC_VERSION},1310>,../sys/win32/rc/idt4.manifest,../sys/win32/rc/idt4.rc>
 )
 
 if (win32_mfc)
