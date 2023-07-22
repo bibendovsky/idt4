@@ -485,6 +485,7 @@ target_sources(${PROJECT_NAME}
 	PRIVATE
 		../sys/win32/rc/res/PropTree.rc2
 		../sys/win32/rc/doom.rc
+		../sys/win32/idt4.manifest
 )
 
 if (win32_mfc)
