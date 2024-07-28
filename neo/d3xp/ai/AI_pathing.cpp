@@ -169,7 +169,11 @@ void GetPointOutsideObstacles( const obstacle_t *obstacles, const int numObstacl
 	}
 
 	const idWinding2D &w = obstacles[bestObstacle].winding;
+#ifdef IDT4_VANILLA
 	bestd = idMath::INFINITY;
+#else
+	bestd = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	bestEdgeNum = 0;
 	for ( i = 0; i < w.GetNumPoints(); i++ ) {
 		plane = idWinding2D::Plane2DFromPoints( w[(i+1)%w.GetNumPoints()], w[i], true );
@@ -207,7 +211,11 @@ void GetPointOutsideObstacles( const obstacle_t *obstacles, const int numObstacl
 	memset( obstacleVisited, 0, numObstacles * sizeof( obstacleVisited[0] ) );
 	obstacleVisited[bestObstacle] = true;
 
+#ifdef IDT4_VANILLA
 	bestd = idMath::INFINITY;
+#else
+	bestd = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	for ( i = queue[0]; queueStart < queueEnd; i = queue[++queueStart] ) {
 		w1 = obstacles[i].winding;
 		w1.Expand( PUSH_OUTSIDE_OBSTACLES );
@@ -249,7 +257,11 @@ void GetPointOutsideObstacles( const obstacle_t *obstacles, const int numObstacl
 			}
 		}
 
+#ifdef IDT4_VANILLA
 		if ( bestd < idMath::INFINITY ) {
+#else
+		if ( bestd < idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			point = bestPoint;
 			if ( obstacle ) {
 				*obstacle = bestObstacle;
@@ -280,7 +292,11 @@ bool GetFirstBlockingObstacle( const obstacle_t *obstacles, int numObstacles, in
 	bounds[FLOATSIGNBITNOTSET(delta.y)].y += delta.y;
 
 	// test for obstacles blocking the path
+#ifdef IDT4_VANILLA
 	blockingScale = idMath::INFINITY;
+#else
+	blockingScale = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	dist = delta.Length();
 	for ( i = 0; i < numObstacles; i++ ) {
 		if ( i == skipObstacle ) {
@@ -711,7 +727,11 @@ void PrunePathTree( pathNode_t *root, const idVec2 &seekPos ) {
 		} else {
 
 			// find the node closest to the goal along this path
+#ifdef IDT4_VANILLA
 			bestDist = idMath::INFINITY;
+#else
+			bestDist = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 			bestNode = node;
 			for ( n = node; n; n = n->parent ) {
 				if ( n->children[0] && n->children[1] ) {
@@ -845,7 +865,11 @@ bool FindOptimalPath( const pathNode_t *root, const obstacle_t *obstacles, int n
 
 	bestNode = root;
 	bestNumPathPoints = 0;
+#ifdef IDT4_VANILLA
 	bestPathLength = idMath::INFINITY;
+#else
+	bestPathLength = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 
 	node = root;
 	while( node ) {

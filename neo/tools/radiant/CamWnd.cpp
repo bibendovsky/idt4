@@ -1220,7 +1220,11 @@ bool IsBModel(brush_t *b) {
 	const char *v = ValueForKey( b->owner, "model" );
 	if (v && *v) {
 		const char *n = ValueForKey( b->owner, "name");
+#ifdef IDT4_VANILLA
 		return (stricmp( n, v ) == 0);
+#else
+		return (idStr::Icmp( n, v ) == 0);
+#endif // IDT4_VANILLA
 	}
 	return false;
 }
@@ -1277,7 +1281,11 @@ void CCamWnd::BuildEntityRenderState( entity_t *ent, bool update) {
 
 		refent.referenceSound = ent->soundEmitter;
 
+#ifdef IDT4_VANILLA
 		if ( !stricmp( name, v ) ) {
+#else
+		if ( !idStr::Icmp( name, v ) ) {
+#endif // IDT4_VANILLA
 			// build the model from brushes
 			idTriList tris(1024);
 			idMatList mats(1024);
@@ -1400,7 +1408,11 @@ void Tris_ToOBJ(const char *outFile, idTriList *tris, idMatList *mats) {
 				f->Printf( "vn %f %f %f\n", tri->verts[j].normal.x, tri->verts[j].normal.y, tri->verts[j].normal.z );
 			}
 
+#ifdef IDT4_VANILLA
 			if (stricmp( (*mats)[i]->GetName(), lastMaterial)) {
+#else
+			if (idStr::Icmp( (*mats)[i]->GetName(), lastMaterial)) {
+#endif // IDT4_VANILLA
 				lastMaterial = (*mats)[i]->GetName();
 
 				bool found = false;

@@ -252,7 +252,11 @@ void idDemoFile::WriteHashString( const char *str ) {
 	}
 	// see if it is already in the has table
 	for ( int i = 0 ; i < demoStrings.Num() ; i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( demoStrings[i]->c_str(), str ) ) {
+#else
+		if ( !idStr::Cmp( demoStrings[i]->c_str(), str ) ) {
+#endif // IDT4_VANILLA
 			WriteInt( i );
 			return;
 		}

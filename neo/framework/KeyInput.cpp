@@ -574,7 +574,11 @@ void idKeyInput::WriteBindings( idFile *f ) {
 			const char *name = KeyNumToString( i, false );
 
 			// handle the escape character nicely
+#ifdef IDT4_VANILLA
 			if ( !strcmp( name, "\\" ) ) {
+#else
+			if ( !idStr::Cmp( name, "\\" ) ) {
+#endif // IDT4_VANILLA
 				f->Printf( "bind \"\\\" \"%s\"\n", keys[i].binding.c_str() );
 			} else {
 				f->Printf( "bind \"%s\" \"%s\"\n", KeyNumToString( i, false ), keys[i].binding.c_str() );

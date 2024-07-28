@@ -684,7 +684,11 @@ bool OkForRotationKey(brush_t *b) {
 		return false;
 	}
 
+#ifdef IDT4_VANILLA
 	if (stricmp(b->owner->epairs.GetString("name"), b->owner->epairs.GetString("model")) == 0) {
+#else
+	if (idStr::Icmp(b->owner->epairs.GetString("name"), b->owner->epairs.GetString("model")) == 0) {
+#endif // IDT4_VANILLA
 		return false;
 	}
 

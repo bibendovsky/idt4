@@ -921,7 +921,11 @@ void idCommonLocal::StartupVariable( const char *match, bool once ) {
 
 	i = 0;
 	while (	i < com_numConsoleLines ) {
+#ifdef IDT4_VANILLA
 		if ( strcmp( com_consoleLines[ i ].Argv( 0 ), "set" ) ) {
+#else
+		if ( idStr::Cmp( com_consoleLines[ i ].Argv( 0 ), "set" ) ) {
+#endif // IDT4_VANILLA
 			i++;
 			continue;
 		}

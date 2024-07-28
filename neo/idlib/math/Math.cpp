@@ -43,8 +43,13 @@ const float	idMath::M_DEG2RAD		= PI / 180.0f;
 const float	idMath::M_RAD2DEG		= 180.0f / PI;
 const float	idMath::M_SEC2MS		= 1000.0f;
 const float	idMath::M_MS2SEC		= 0.001f;
+#ifdef IDT4_VANILLA
 const float	idMath::INFINITY		= 1e30f;
 const float idMath::FLT_EPSILON		= 1.192092896e-07f;
+#else
+const float	idMath::INFINITY_		= 1e30f;
+const float idMath::FLT_EPSILON_		= 1.192092896e-07f;
+#endif // IDT4_VANILLA
 
 bool		idMath::initialized		= false;
 dword		idMath::iSqrt[SQRT_TABLE_SIZE];		// inverse square root lookup table

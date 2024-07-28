@@ -181,7 +181,11 @@ void CPreviewDlg::AddStrList( const char *root, const idStrList &list, int id ) 
 	HTREEITEM	base = treeMedia.GetRootItem();
 	if (base) {
 		out = treeMedia.GetItemText(base);
+#ifdef IDT4_VANILLA
 		if (stricmp(root, out)) {
+#else
+		if (idStr::Icmp(root, out)) {
+#endif // IDT4_VANILLA
 			base = NULL;
 		}
 	}

@@ -681,8 +681,13 @@ bool idFrustum::LocalRayIntersection( const idVec3 &start, const idVec3 &dir, fl
 	upScale = dUp * invFar;
 	end = start + dir;
 
+#ifdef IDT4_VANILLA
 	scale1 = idMath::INFINITY;
 	scale2 = -idMath::INFINITY;
+#else
+	scale1 = idMath::INFINITY_;
+	scale2 = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 
 	// test near plane
 	if ( dNear > 0.0f ) {
@@ -1980,8 +1985,13 @@ bool idFrustum::BoundsRayIntersection( const idBounds &bounds, const idVec3 &sta
 	float d1, d2, f;
 	int i, startInside = 1;
 
+#ifdef IDT4_VANILLA
 	scale1 = idMath::INFINITY;
 	scale2 = -idMath::INFINITY;
+#else
+	scale1 = idMath::INFINITY_;
+	scale2 = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 
 	end = start + dir;
 
@@ -2480,8 +2490,13 @@ bool idFrustum::ClipLine( const idVec3 localPoints[8], const idVec3 points[8], i
 	localDir = localEnd - localStart;
 
 	startClip = endClip = -1;
+#ifdef IDT4_VANILLA
 	scale1 = idMath::INFINITY;
 	scale2 = -idMath::INFINITY;
+#else
+	scale1 = idMath::INFINITY_;
+	scale2 = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 
 	fstart = dFar * localStart.y;
 	fend = dFar * localEnd.y;

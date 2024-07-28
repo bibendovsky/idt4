@@ -3032,7 +3032,11 @@ void idAFConstraint_Contact::Setup( idAFBody *b1, idAFBody *b2, contactInfo_t &c
 
 	e[0] = CONTACT_LCP_EPSILON;
 	lo[0] = 0.0f;
+#ifdef IDT4_VANILLA
 	hi[0] = idMath::INFINITY;
+#else
+	hi[0] = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	boxConstraint = NULL;
 	boxIndex[0] = -1;
 }

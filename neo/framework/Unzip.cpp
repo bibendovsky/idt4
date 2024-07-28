@@ -1213,7 +1213,11 @@ extern int unzStringFileNameCompare (const char* fileName1,const char* fileName2
 		iCaseSensitivity=CASESENSITIVITYDEFAULTVALUE;
 
 	if (iCaseSensitivity==1)
+#ifdef IDT4_VANILLA
 		return strcmp(fileName1,fileName2);
+#else
+		return idStr::Cmp(fileName1,fileName2);
+#endif // IDT4_VANILLA
 
 	return STRCMPCASENOSENTIVEFUNCTION(fileName1,fileName2);
 } 

@@ -277,7 +277,11 @@ ALIGN4_INIT1( float SIMD_SP_PI, idMath::PI );
 ALIGN4_INIT1( float SIMD_SP_halfPI, idMath::HALF_PI );
 ALIGN4_INIT1( float SIMD_SP_twoPI, idMath::TWO_PI );
 ALIGN4_INIT1( float SIMD_SP_oneOverTwoPI, 1.0f / idMath::TWO_PI );
+#ifdef IDT4_VANILLA
 ALIGN4_INIT1( float SIMD_SP_infinity, idMath::INFINITY );
+#else
+ALIGN4_INIT1( float SIMD_SP_infinity, idMath::INFINITY_ );
+#endif // IDT4_VANILLA
 
 
 /*

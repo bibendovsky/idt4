@@ -128,7 +128,11 @@ void MaterialTreeView::BuildMaterialList(bool includeFile, const char* filename)
 		for (int i = 0; i < count; i++) {
 			const idMaterial	*mat = declManager->MaterialByIndex(i, false);
 
+#ifdef IDT4_VANILLA
 			if(filename && strcmp(filename, mat->GetFileName())) {
+#else
+			if(filename && idStr::Cmp(filename, mat->GetFileName())) {
+#endif // IDT4_VANILLA
 				continue;
 			}
 
@@ -1537,7 +1541,11 @@ void MaterialTreeView::AddStrList(const char *root, idStrList *list, bool includ
 		base = treeMedia.GetRootItem();
 		if (base) {
 			out = treeMedia.GetItemText(base);
+#ifdef IDT4_VANILLA
 			if (stricmp(root, out)) {
+#else
+			if (idStr::Icmp(root, out)) {
+#endif // IDT4_VANILLA
 				base = NULL;
 			}
 		}

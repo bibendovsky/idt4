@@ -1851,7 +1851,11 @@ idActor *idActor::ClosestEnemyToPoint( const idVec3 &pos ) {
 	float		distSquared;
 	idVec3		delta;
 
+#ifdef IDT4_VANILLA
 	bestDistSquared = idMath::INFINITY;
+#else
+	bestDistSquared = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	bestEnt = NULL;
 	for( ent = enemyList.Next(); ent != NULL; ent = ent->enemyNode.Next() ) {
 		if ( ent->fl.hidden ) {

@@ -101,7 +101,11 @@ void MaterialDocManager::SetSelectedMaterial(idMaterial* material) {
 	//Do we need to change the material
 	if(material) {
 		if(currentMaterial) {
+#ifdef IDT4_VANILLA
 			if(strcmp(material->GetName(), currentMaterial->renderMaterial->GetName())) {
+#else
+			if(idStr::Cmp(material->GetName(), currentMaterial->renderMaterial->GetName())) {
+#endif // IDT4_VANILLA
 				change = true;
 			}
 		} else {
@@ -142,7 +146,11 @@ void MaterialDocManager::SetSelectedMaterial(idMaterial* material) {
 bool MaterialDocManager::DoesFileNeedApply(const char* filename) {
 	for(int i = 0; i < inProgressMaterials.Num(); i++) {
 		MaterialDoc** pDoc = inProgressMaterials.GetIndex(i);
+#ifdef IDT4_VANILLA
 		if(!strcmp((*pDoc)->renderMaterial->GetFileName(), filename) && (*pDoc)->applyWaiting)
+#else
+		if(!idStr::Cmp((*pDoc)->renderMaterial->GetFileName(), filename) && (*pDoc)->applyWaiting)
+#endif // IDT4_VANILLA
 			return true;
 	}
 	return false;
@@ -166,7 +174,11 @@ bool MaterialDocManager::DoesAnyNeedApply() {
 bool MaterialDocManager::IsFileModified(const char* filename) {
 	for(int i = 0; i < inProgressMaterials.Num(); i++) {
 		MaterialDoc** pDoc = inProgressMaterials.GetIndex(i);
+#ifdef IDT4_VANILLA
 		if(!strcmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#else
+		if(!idStr::Cmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#endif // IDT4_VANILLA
 			return true;
 	}
 	return false;
@@ -281,7 +293,11 @@ void MaterialDocManager::ApplyFile(const char* filename) {
 	
 	for(int i = 0; i < inProgressMaterials.Num(); i++) {
 		MaterialDoc** pDoc = inProgressMaterials.GetIndex(i);
+#ifdef IDT4_VANILLA
 		if(!strcmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#else
+		if(!idStr::Cmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#endif // IDT4_VANILLA
 			(*pDoc)->ApplyMaterialChanges();
 	}
 }
@@ -313,7 +329,11 @@ void MaterialDocManager::SaveFile(const char* filename) {
 	
 	for(int i = inProgressMaterials.Num()-1; i >= 0; i--) {
 		MaterialDoc** pDoc = inProgressMaterials.GetIndex(i);
+#ifdef IDT4_VANILLA
 		if(!strcmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#else
+		if(!idStr::Cmp((*pDoc)->renderMaterial->GetFileName(), filename))
+#endif // IDT4_VANILLA
 			(*pDoc)->Save();
 	}
 
@@ -342,7 +362,11 @@ void MaterialDocManager::ReloadFile(const char *filename) {
 	//purge the changes of any in progress materials
 	for(int j = inProgressMaterials.Num()-1; j >= 0; j--) {
 		MaterialDoc** pDoc = inProgressMaterials.GetIndex(j);
+#ifdef IDT4_VANILLA
 		if(!strcmp((*pDoc)->renderMaterial->GetFileName(), filename)) {
+#else
+		if(!idStr::Cmp((*pDoc)->renderMaterial->GetFileName(), filename)) {
+#endif // IDT4_VANILLA
 			(*pDoc)->SetRenderMaterial((*pDoc)->renderMaterial);
 			inProgressMaterials.Remove((*pDoc)->name);
 		}

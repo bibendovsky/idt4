@@ -72,7 +72,11 @@ int idParser::RemoveGlobalDefine( const char *name ) {
 	define_t *d, *prev;
 
 	for ( prev = NULL, d = idParser::globaldefines; d; prev = d, d = d->next ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( d->name, name ) ) {
+#else
+		if ( !idStr::Cmp( d->name, name ) ) {
+#endif // IDT4_VANILLA
 			break;
 		}
 	}
@@ -183,7 +187,11 @@ define_t *idParser::FindHashedDefine( define_t **definehash, const char *name ) 
 
 	hash = PC_NameHash(name);
 	for ( d = definehash[hash]; d; d = d->hashnext ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp(d->name, name) ) {
+#else
+		if ( !idStr::Cmp(d->name, name) ) {
+#endif // IDT4_VANILLA
 			return d;
 		}
 	}
@@ -199,7 +207,11 @@ define_t *idParser::FindDefine( define_t *defines, const char *name ) {
 	define_t *d;
 
 	for ( d = defines; d; d = d->next ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp(d->name, name) ) {
+#else
+		if ( !idStr::Cmp(d->name, name) ) {
+#endif // IDT4_VANILLA
 			return d;
 		}
 	}
@@ -1031,7 +1043,11 @@ int idParser::Directive_undef( void ) {
 
 	hash = PC_NameHash( token.c_str() );
 	for (lastdefine = NULL, define = idParser::definehash[hash]; define; define = define->hashnext) {
+#ifdef IDT4_VANILLA
 		if (!strcmp(define->name, token.c_str()))
+#else
+		if (!idStr::Cmp(define->name, token.c_str()))
+#endif // IDT4_VANILLA
 		{
 			if (define->flags & DEFINE_FIXED) {
 				idParser::Warning( "can't undef '%s'", token.c_str() );
@@ -1148,7 +1164,11 @@ int idParser::Directive_define( void ) {
 	do
 	{
 		t = new idToken(token);
+#ifdef IDT4_VANILLA
 		if ( t->type == TT_NAME && !strcmp( t->c_str(), define->name ) ) {
+#else
+		if ( t->type == TT_NAME && !idStr::Cmp( t->c_str(), define->name ) ) {
+#endif // IDT4_VANILLA
 			t->flags |= TOKEN_FL_RECURSIVE_DEFINE;
 			idParser::Warning( "recursive define (removed recursion)" );
 		}
@@ -3160,7 +3180,11 @@ int idParser::GetPunctuationId( const char *p ) {
 	}
 
 	for (i = 0; idParser::punctuations[i].p; i++) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp(idParser::punctuations[i].p, p) ) {
+#else
+		if ( !idStr::Cmp(idParser::punctuations[i].p, p) ) {
+#endif // IDT4_VANILLA
 			return idParser::punctuations[i].n;
 		}
 	}

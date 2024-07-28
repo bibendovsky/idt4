@@ -134,7 +134,11 @@ brush_t *Brush_Merge(brush_t *brush1, brush_t *brush2, int onlyshape)
 			if ( face1->plane.Compare( face2->plane, PLANE_EPSILON ) )
 			{
 				//if the texture/shader references should be the same but are not
+#ifdef IDT4_VANILLA
 				if (!onlyshape && stricmp(face1->texdef.name, face2->texdef.name) != 0)
+#else
+				if (!onlyshape && idStr::Icmp(face1->texdef.name, face2->texdef.name) != 0)
+#endif // IDT4_VANILLA
 					return NULL;
 				continue;
 			}
@@ -352,7 +356,11 @@ brush_t *Brush_MergeList(brush_t *brushlist, int onlyshape)
 					if ( face1->plane.Compare( face2->plane, PLANE_EPSILON ) )
 					{
 						//if the texture/shader references should be the same but are not
+#ifdef IDT4_VANILLA
 						if (!onlyshape && stricmp(face1->texdef.name, face2->texdef.name) != 0)
+#else
+						if (!onlyshape && idStr::Icmp(face1->texdef.name, face2->texdef.name) != 0)
+#endif // IDT4_VANILLA
 							return NULL;
 						continue;
 					}

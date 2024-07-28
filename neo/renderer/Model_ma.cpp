@@ -860,7 +860,11 @@ bool MA_ParseConnectAttr(idParser& parser) {
 	if(srcType.Find("iog") != -1) {
 		//Is this an attribute for one of our meshes
 		for(int i = 0; i < maGlobal.model->objects.Num(); i++) {
+#ifdef IDT4_VANILLA
 			if(!strcmp(maGlobal.model->objects[i]->name, srcName)) {
+#else
+			if(!idStr::Cmp(maGlobal.model->objects[i]->name, srcName)) {
+#endif // IDT4_VANILLA
 				//maGlobal.model->objects[i]->materialRef = MA_AddMaterial(destName);
 				strcpy(maGlobal.model->objects[i]->materialName, destName); 
 				break;

@@ -216,7 +216,11 @@ static bool IsAMD( void ) {
 	processorString[11] = pstring[11];
 	processorString[12] = 0;
 
+#ifdef IDT4_VANILLA
 	if ( strcmp( processorString, "AuthenticAMD" ) == 0 ) {
+#else
+	if ( idStr::Cmp( processorString, "AuthenticAMD" ) == 0 ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 	return false;

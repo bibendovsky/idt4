@@ -3002,6 +3002,7 @@ bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 
 	l = strlen( path );
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( path + l - 4, ".cfg" )		// for config files
 		|| !strcmp( path + l - 4, ".dat" )		// for journal files
 		|| !strcmp( path + l - 4, ".dll" )		// dynamic modules are handled a different way for pure
@@ -3011,27 +3012,54 @@ bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 #if ID_PURE_ALLOWDDS
 		 || !strcmp( path + l - 4, ".dds" )
 #endif
+#else
+	if ( !idStr::Cmp( path + l - 4, ".cfg" )		// for config files
+		|| !idStr::Cmp( path + l - 4, ".dat" )		// for journal files
+		|| !idStr::Cmp( path + l - 4, ".dll" )		// dynamic modules are handled a different way for pure
+		|| !idStr::Cmp( path + l - 3, ".so" )
+		|| ( l > 6 && !idStr::Cmp( path + l - 6, ".dylib" ) )
+		|| ( l > 10 && !idStr::Cmp( path + l - 10, ".scriptcfg" ) )	// configuration script, such as map cycle
+#if ID_PURE_ALLOWDDS
+		 || !idStr::Cmp( path + l - 4, ".dds" )
+#endif
+#endif // IDT4_VANILLA
 		 ) {
 		// note: cd and xp keys, as well as config.spec are opened through an explicit OS path and don't hit this
 		return true;
 	}
 	// savegames
 	if ( strstr( path, "savegames" ) == path &&
+#ifdef IDT4_VANILLA
 		( !strcmp( path + l - 4, ".tga" ) || !strcmp( path + l -4, ".txt" ) || !strcmp( path + l - 5, ".save" ) ) ) {
+#else
+		( !idStr::Cmp( path + l - 4, ".tga" ) || !idStr::Cmp( path + l -4, ".txt" ) || !idStr::Cmp( path + l - 5, ".save" ) ) ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 	// screen shots
+#ifdef IDT4_VANILLA
 	if ( strstr( path, "screenshots" ) == path && !strcmp( path + l - 4, ".tga" ) ) {
+#else
+	if ( strstr( path, "screenshots" ) == path && !idStr::Cmp( path + l - 4, ".tga" ) ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 	// objective tgas
 	if ( strstr( path, "maps/game" ) == path && 
+#ifdef IDT4_VANILLA
 		!strcmp( path + l - 4, ".tga" ) ) {
+#else
+		!idStr::Cmp( path + l - 4, ".tga" ) ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 	// splash screens extracted from addons
 	if ( strstr( path, "guis/assets/splash/addon" ) == path &&
+#ifdef IDT4_VANILLA
 		 !strcmp( path + l -4, ".tga" ) ) {
+#else
+		 !idStr::Cmp( path + l -4, ".tga" ) ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 

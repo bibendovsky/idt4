@@ -2687,7 +2687,11 @@ int lwResolvePolySurfaces( lwPolygonList *polygon, lwTagList *tlist,
    for ( i = 0; i < tlist->count; i++ ) {
       st = *surf;
       while ( st ) {
+#ifdef IDT4_VANILLA
          if ( !strcmp( st->name, tlist->tag[ i ] )) {
+#else
+         if ( !idStr::Cmp( st->name, tlist->tag[ i ] )) {
+#endif // IDT4_VANILLA
             s[ i ] = st;
             break;
          }
@@ -3577,13 +3581,21 @@ textures to surface channels and shaders to surfaces.
 
 static int compare_textures( lwTexture *a, lwTexture *b )
 {
+#ifdef IDT4_VANILLA
    return strcmp( a->ord, b->ord );
+#else
+   return idStr::Cmp( a->ord, b->ord );
+#endif // IDT4_VANILLA
 }
 
 
 static int compare_shaders( lwPlugin *a, lwPlugin *b )
 {
+#ifdef IDT4_VANILLA
    return strcmp( a->ord, b->ord );
+#else
+   return idStr::Cmp( a->ord, b->ord );
+#endif // IDT4_VANILLA
 }
 
 

@@ -200,7 +200,11 @@ ID_INLINE bool idBox::operator!=( const idBox &a ) const {
 
 ID_INLINE void idBox::Clear( void ) {
 	center.Zero();
+#ifdef IDT4_VANILLA
 	extents[0] = extents[1] = extents[2] = -idMath::INFINITY;
+#else
+	extents[0] = extents[1] = extents[2] = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	axis.Identity();
 }
 

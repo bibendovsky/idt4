@@ -85,7 +85,11 @@ bool idCollisionModelManagerLocal::TestTrmVertsInBrush( cm_traceWork_t *tw, cm_b
 
 		// see if the point is inside the brush
 		bestPlane = 0;
+#ifdef IDT4_VANILLA
 		bestd = -idMath::INFINITY;
+#else
+		bestd = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 		for ( i = 0; i < b->numPlanes; i++ ) {
 			d = b->planes[i].Distance( *p );
 			if ( d >= 0.0f ) {
@@ -209,7 +213,11 @@ bool idCollisionModelManagerLocal::TestTrmInPolygon( cm_traceWork_t *tw, cm_poly
 				}
 
 				bestPlane = 0;
+#ifdef IDT4_VANILLA
 				bestd = -idMath::INFINITY;
+#else
+				bestd = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 				for ( k = 0; k < tw->numPolys; k++ ) {
 					d = tw->polys[k].plane.Distance( v->p );
 					if ( d >= 0.0f ) {

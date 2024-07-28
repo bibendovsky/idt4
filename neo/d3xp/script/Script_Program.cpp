@@ -540,7 +540,11 @@ void idTypeDef::AddFunction( const function_t *func ) {
 	int i;
 
 	for( i = 0; i < functions.Num(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( functions[ i ]->def->Name(), func->def->Name() ) ) {
+#else
+		if ( !idStr::Cmp( functions[ i ]->def->Name(), func->def->Name() ) ) {
+#endif // IDT4_VANILLA
 			if ( func->def->TypeDef()->MatchesVirtualFunction( *functions[ i ]->def->TypeDef() ) ) {
 				functions[ i ] = func;
 				return;
@@ -1088,7 +1092,11 @@ byte *idScriptObject::GetVariable( const char *name, etype_t etype ) const {
 		}
 		for( i = 0; i < t->NumParameters(); i++ ) {
 			parm = t->GetParmType( i );
+#ifdef IDT4_VANILLA
 			if ( !strcmp( t->GetParmName( i ), name ) ) {
+#else
+			if ( !idStr::Cmp( t->GetParmName( i ), name ) ) {
+#endif // IDT4_VANILLA
 				if ( etype != parm->FieldType()->Type() ) {
 					return NULL;
 				}
@@ -1154,7 +1162,11 @@ idTypeDef *idProgram::GetType( idTypeDef &type, bool allocate ) {
 
 	//FIXME: linear search == slow
 	for( i = types.Num() - 1; i >= 0; i-- ) {
+#ifdef IDT4_VANILLA
 		if ( types[ i ]->MatchesType( type ) && !strcmp( types[ i ]->Name(), type.Name() ) ) {
+#else
+		if ( types[ i ]->MatchesType( type ) && !idStr::Cmp( types[ i ]->Name(), type.Name() ) ) {
+#endif // IDT4_VANILLA
 			return types[ i ];
 		}
 	}
@@ -1180,7 +1192,11 @@ idTypeDef *idProgram::FindType( const char *name ) {
 
 	for( i = types.Num() - 1; i >= 0; i-- ) {
 		check = types[ i ];
+#ifdef IDT4_VANILLA
 		if ( !strcmp( check->Name(), name ) ) {
+#else
+		if ( !idStr::Cmp( check->Name(), name ) ) {
+#endif // IDT4_VANILLA
 			return check;
 		}
 	}
@@ -1251,7 +1267,11 @@ idVarDef *idProgram::AllocDef( idTypeDef *type, const char *name, idVarDef *scop
 		//
 		// vector
 		//
+#ifdef IDT4_VANILLA
 		if ( !strcmp( name, RESULT_STRING ) ) {
+#else
+		if ( !idStr::Cmp( name, RESULT_STRING ) ) {
+#endif // IDT4_VANILLA
 			// <RESULT> vector defs don't need the _x, _y and _z components
 			assert( scope->Type() == ev_function );
 			def->value.stackOffset	= scope->value.functionPtr->locals;

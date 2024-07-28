@@ -34,7 +34,11 @@ idVec3 vec3_origin( 0.0f, 0.0f, 0.0f );
 idVec4 vec4_origin( 0.0f, 0.0f, 0.0f, 0.0f );
 idVec5 vec5_origin( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 idVec6 vec6_origin( 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+#ifdef IDT4_VANILLA
 idVec6 vec6_infinity( idMath::INFINITY, idMath::INFINITY, idMath::INFINITY, idMath::INFINITY, idMath::INFINITY, idMath::INFINITY );
+#else
+idVec6 vec6_infinity( idMath::INFINITY_, idMath::INFINITY_, idMath::INFINITY_, idMath::INFINITY_, idMath::INFINITY_, idMath::INFINITY_ );
+#endif // IDT4_VANILLA
 
 
 //===============================================================

@@ -431,7 +431,11 @@ void idLCP_Square::GetMaxStep( int d, float dir, float &maxStep, int &limit, int
 
 	// test the current variable
 	if ( dir < 0.0f ) {
+#ifdef IDT4_VANILLA
 		if ( lo[d] != -idMath::INFINITY ) {
+#else
+		if ( lo[d] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			s = ( lo[d] - f[d] ) / dir;
 			if ( s < maxStep ) {
 				maxStep = s;
@@ -439,7 +443,11 @@ void idLCP_Square::GetMaxStep( int d, float dir, float &maxStep, int &limit, int
 			}
 		}
 	} else {
+#ifdef IDT4_VANILLA
 		if ( hi[d] != idMath::INFINITY ) {
+#else
+		if ( hi[d] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			s = ( hi[d] - f[d] ) / dir;
 			if ( s < maxStep ) {
 				maxStep = s;
@@ -452,7 +460,11 @@ void idLCP_Square::GetMaxStep( int d, float dir, float &maxStep, int &limit, int
 	for ( i = numUnbounded; i < numClamped; i++ ) {
 		if ( delta_f[i] < -LCP_DELTA_FORCE_EPSILON ) {
 			// if there is a low boundary
+#ifdef IDT4_VANILLA
 			if ( lo[i] != -idMath::INFINITY ) {
+#else
+			if ( lo[i] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 				s = ( lo[i] - f[i] ) / delta_f[i];
 				if ( s < maxStep ) {
 					maxStep = s;
@@ -462,7 +474,11 @@ void idLCP_Square::GetMaxStep( int d, float dir, float &maxStep, int &limit, int
 			}
 		} else if ( delta_f[i] > LCP_DELTA_FORCE_EPSILON ) {
 			// if there is a high boundary
+#ifdef IDT4_VANILLA
 			if ( hi[i] != idMath::INFINITY ) {
+#else
+			if ( hi[i] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 				s = ( hi[i] - f[i] ) / delta_f[i];
 				if ( s < maxStep ) {
 					maxStep = s;
@@ -557,7 +573,11 @@ bool idLCP_Square::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, con
 	// permute input so all unbounded variables come first
 	numUnbounded = 0;
 	for ( i = 0; i < m.GetNumRows(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( lo[i] == -idMath::INFINITY && hi[i] == idMath::INFINITY ) {
+#else
+		if ( lo[i] == -idMath::INFINITY_ && hi[i] == idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			if ( numUnbounded != i ) {
 				Swap( numUnbounded, i );
 			}
@@ -569,7 +589,11 @@ bool idLCP_Square::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, con
 	boxStartIndex = m.GetNumRows();
 	if ( boxIndex ) {
 		for ( i = m.GetNumRows() - 1; i >= numUnbounded; i-- ) {
+#ifdef IDT4_VANILLA
 			if ( boxIndex[i] >= 0 && ( lo[i] != -idMath::INFINITY || hi[i] != idMath::INFINITY ) ) {
+#else
+			if ( boxIndex[i] >= 0 && ( lo[i] != -idMath::INFINITY_ || hi[i] != idMath::INFINITY_ ) ) {
+#endif // IDT4_VANILLA
 				boxStartIndex--;
 				if ( boxStartIndex != i ) {
 					Swap( boxStartIndex, i );
@@ -621,10 +645,18 @@ bool idLCP_Square::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, con
 			}
 			for ( j = boxStartIndex; j < m.GetNumRows(); j++ ) {
 				s = o_x[boxIndex[j]];
+#ifdef IDT4_VANILLA
 				if ( lo[j] != -idMath::INFINITY ) {
+#else
+				if ( lo[j] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 					lo[j] = - idMath::Fabs( lo[j] * s );
 				}
+#ifdef IDT4_VANILLA
 				if ( hi[j] != idMath::INFINITY ) {
+#else
+				if ( hi[j] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 					hi[j] = idMath::Fabs( hi[j] * s );
 				}
 			}
@@ -1221,7 +1253,11 @@ void idLCP_Symmetric::GetMaxStep( int d, float dir, float &maxStep, int &limit, 
 
 	// test the current variable
 	if ( dir < 0.0f ) {
+#ifdef IDT4_VANILLA
 		if ( lo[d] != -idMath::INFINITY ) {
+#else
+		if ( lo[d] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			s = ( lo[d] - f[d] ) / dir;
 			if ( s < maxStep ) {
 				maxStep = s;
@@ -1229,7 +1265,11 @@ void idLCP_Symmetric::GetMaxStep( int d, float dir, float &maxStep, int &limit, 
 			}
 		}
 	} else {
+#ifdef IDT4_VANILLA
 		if ( hi[d] != idMath::INFINITY ) {
+#else
+		if ( hi[d] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			s = ( hi[d] - f[d] ) / dir;
 			if ( s < maxStep ) {
 				maxStep = s;
@@ -1242,7 +1282,11 @@ void idLCP_Symmetric::GetMaxStep( int d, float dir, float &maxStep, int &limit, 
 	for ( i = numUnbounded; i < numClamped; i++ ) {
 		if ( delta_f[i] < -LCP_DELTA_FORCE_EPSILON ) {
 			// if there is a low boundary
+#ifdef IDT4_VANILLA
 			if ( lo[i] != -idMath::INFINITY ) {
+#else
+			if ( lo[i] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 				s = ( lo[i] - f[i] ) / delta_f[i];
 				if ( s < maxStep ) {
 					maxStep = s;
@@ -1252,7 +1296,11 @@ void idLCP_Symmetric::GetMaxStep( int d, float dir, float &maxStep, int &limit, 
 			}
 		} else if ( delta_f[i] > LCP_DELTA_FORCE_EPSILON ) {
 			// if there is a high boundary
+#ifdef IDT4_VANILLA
 			if ( hi[i] != idMath::INFINITY ) {
+#else
+			if ( hi[i] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 				s = ( hi[i] - f[i] ) / delta_f[i];
 				if ( s < maxStep ) {
 					maxStep = s;
@@ -1347,7 +1395,11 @@ bool idLCP_Symmetric::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, 
 	// permute input so all unbounded variables come first
 	numUnbounded = 0;
 	for ( i = 0; i < m.GetNumRows(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( lo[i] == -idMath::INFINITY && hi[i] == idMath::INFINITY ) {
+#else
+		if ( lo[i] == -idMath::INFINITY_ && hi[i] == idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 			if ( numUnbounded != i ) {
 				Swap( numUnbounded, i );
 			}
@@ -1359,7 +1411,11 @@ bool idLCP_Symmetric::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, 
 	boxStartIndex = m.GetNumRows();
 	if ( boxIndex ) {
 		for ( i = m.GetNumRows() - 1; i >= numUnbounded; i-- ) {
+#ifdef IDT4_VANILLA
 			if ( boxIndex[i] >= 0 && ( lo[i] != -idMath::INFINITY || hi[i] != idMath::INFINITY ) ) {
+#else
+			if ( boxIndex[i] >= 0 && ( lo[i] != -idMath::INFINITY_ || hi[i] != idMath::INFINITY_ ) ) {
+#endif // IDT4_VANILLA
 				boxStartIndex--;
 				if ( boxStartIndex != i ) {
 					Swap( boxStartIndex, i );
@@ -1415,10 +1471,18 @@ bool idLCP_Symmetric::Solve( const idMatX &o_m, idVecX &o_x, const idVecX &o_b, 
 			}
 			for ( j = boxStartIndex; j < m.GetNumRows(); j++ ) {
 				s = o_x[boxIndex[j]];
+#ifdef IDT4_VANILLA
 				if ( lo[j] != -idMath::INFINITY ) {
+#else
+				if ( lo[j] != -idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 					lo[j] = - idMath::Fabs( lo[j] * s );
 				}
+#ifdef IDT4_VANILLA
 				if ( hi[j] != idMath::INFINITY ) {
+#else
+				if ( hi[j] != idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 					hi[j] = idMath::Fabs( hi[j] * s );
 				}
 			}

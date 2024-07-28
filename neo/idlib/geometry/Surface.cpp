@@ -700,7 +700,11 @@ float idSurface::PlaneDistance( const idPlane &plane ) const {
 	int		i;
 	float	d, min, max;
 
+#ifdef IDT4_VANILLA
 	min = idMath::INFINITY;
+#else
+	min = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	max = -min;
 	for ( i = 0; i < verts.Num(); i++ ) {
 		d = plane.Distance( verts[i].xyz );
@@ -790,7 +794,11 @@ bool idSurface::RayIntersection( const idVec3 &start, const idVec3 &dir, float &
 	idPlane plane;
 
 	sidedness = (byte *)_alloca( edges.Num() * sizeof(byte) );
+#ifdef IDT4_VANILLA
 	scale = idMath::INFINITY;
+#else
+	scale = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 
 	rayPl.FromRay( start, dir );
 
@@ -825,7 +833,11 @@ bool idSurface::RayIntersection( const idVec3 &start, const idVec3 &dir, float &
 		}
 	}
 
+#ifdef IDT4_VANILLA
 	if ( idMath::Fabs( scale ) < idMath::INFINITY ) {
+#else
+	if ( idMath::Fabs( scale ) < idMath::INFINITY_ ) {
+#endif // IDT4_VANILLA
 		return true;
 	}
 	return false;

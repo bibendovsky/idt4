@@ -1258,7 +1258,11 @@ float idWinding::PlaneDistance( const idPlane &plane ) const {
 	int		i;
 	float	d, min, max;
 
+#ifdef IDT4_VANILLA
 	min = idMath::INFINITY;
+#else
+	min = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	max = -min;
 	for ( i = 0; i < numPoints; i++ ) {
 		d = plane.Distance( p[i].ToVec3() );

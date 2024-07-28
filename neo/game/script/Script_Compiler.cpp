@@ -577,10 +577,18 @@ idVarDef *idCompiler::EmitOpcode( const opcode_t *op, idVarDef *var_a, idVarDef 
 		return var_c;
 	}
 
+#ifdef IDT4_VANILLA
 	if ( var_a && !strcmp( var_a->Name(), RESULT_STRING ) ) {
+#else
+	if ( var_a && !idStr::Cmp( var_a->Name(), RESULT_STRING ) ) {
+#endif // IDT4_VANILLA
 		var_a->numUsers++;
 	}
+#ifdef IDT4_VANILLA
 	if ( var_b && !strcmp( var_b->Name(), RESULT_STRING ) ) {
+#else
+	if ( var_b && !idStr::Cmp( var_b->Name(), RESULT_STRING ) ) {
+#endif // IDT4_VANILLA
 		var_b->numUsers++;
 	}
 	
@@ -634,7 +642,11 @@ bool idCompiler::EmitPush( idVarDef *expression, const idTypeDef *funcArg ) {
 	opcode_t *out;
 
 	out = NULL;
+#ifdef IDT4_VANILLA
 	for( op = &opcodes[ OP_PUSH_F ]; op->name && !strcmp( op->name, "<PUSH>" ); op++ ) {
+#else
+	for( op = &opcodes[ OP_PUSH_F ]; op->name && !idStr::Cmp( op->name, "<PUSH>" ); op++ ) {
+#endif // IDT4_VANILLA
 		if ( ( funcArg->Type() == op->type_a->Type() ) && ( expression->Type() == op->type_b->Type() ) ) {
 			out = op;
 			break;
@@ -1223,7 +1235,11 @@ idVarDef *idCompiler::LookupDef( const char *name, const idVarDef *baseobj ) {
 						break;
 					}
 					op++;
+#ifdef IDT4_VANILLA
 					if ( !op->name || strcmp( op->name, "." ) ) {
+#else
+					if ( !op->name || idStr::Cmp( op->name, "." ) ) {
+#endif // IDT4_VANILLA
 						Error( "no valid opcode to access type '%s'", field->TypeDef()->SuperClass()->Name() );
 					}
 				}
@@ -1563,7 +1579,11 @@ idVarDef *idCompiler::GetExpression( int priority ) {
 			}
 
 			op++;
+#ifdef IDT4_VANILLA
 			if ( !op->name || strcmp( op->name, oldop->name ) ) {
+#else
+			if ( !op->name || idStr::Cmp( op->name, oldop->name ) ) {
+#endif // IDT4_VANILLA
 				Error( "type mismatch for '%s'", oldop->name );
 			}
 		}
@@ -1700,7 +1720,11 @@ void idCompiler::ParseReturnStatement( void ) {
 	}
 
 	for( op = opcodes; op->name; op++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( op->name, "=" ) ) {
+#else
+		if ( !idStr::Cmp( op->name, "=" ) ) {
+#endif // IDT4_VANILLA
 			break;
 		}
 	}
@@ -1709,7 +1733,11 @@ void idCompiler::ParseReturnStatement( void ) {
 
 	while( !TypeMatches( type_a, op->type_a->Type() ) || !TypeMatches( type_b, op->type_b->Type() ) ) {
 		op++;
+#ifdef IDT4_VANILLA
 		if ( !op->name || strcmp( op->name, "=" ) ) {
+#else
+		if ( !op->name || idStr::Cmp( op->name, "=" ) ) {
+#endif // IDT4_VANILLA
 			Error( "type mismatch for return value" );
 		}
 	}

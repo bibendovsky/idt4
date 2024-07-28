@@ -258,7 +258,11 @@ BOOL CRadiantApp::InitInstance()
 				// the key exists, is it the one we are looking for ?
 				RegQueryValueEx( hkResult, "RadiantName", 0, &type, reinterpret_cast<BYTE *>(RadiantAux), &size );
 				RegCloseKey( hkResult );
+#ifdef IDT4_VANILLA
 				if ( !strcmp( RadiantAux, RadiantPath ) )
+#else
+				if ( !idStr::Cmp( RadiantAux, RadiantPath ) )
+#endif // IDT4_VANILLA
 				{
 					// got it !
 					strcpy( g_qeglobals.use_ini_registry, key.GetBuffer(0) );

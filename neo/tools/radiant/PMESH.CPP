@@ -3158,7 +3158,11 @@ brush_t * Patch_Parse( bool bOld ) {
 	const idMaterial *tex = declManager->FindMaterial(NULL);
 	GetToken(true);
 
+#ifdef IDT4_VANILLA
 	if ( strcmp(token, "{") ) {
+#else
+	if ( idStr::Cmp(token, "{") ) {
+#endif // IDT4_VANILLA
 		return NULL;
 	}
 
@@ -3172,7 +3176,11 @@ brush_t * Patch_Parse( bool bOld ) {
 		GetToken(true);
 
 		// band-aid 
+#ifdef IDT4_VANILLA
 		if ( strcmp(token, "(") ) {
+#else
+		if ( idStr::Cmp(token, "(") ) {
+#endif // IDT4_VANILLA
 			if ( g_qeglobals.mapVersion < 2.0f ) {
 				tex = Texture_ForName(va("textures/%s", token));
 			} else {
@@ -3183,7 +3191,11 @@ brush_t * Patch_Parse( bool bOld ) {
 			common->Printf("Warning: Patch read with no texture, using notexture... \n");
 		}   			
 
+#ifdef IDT4_VANILLA
 		if ( strcmp(token, "(") ) {
+#else
+		if ( idStr::Cmp(token, "(") ) {
+#endif // IDT4_VANILLA
 			return NULL;
 		}
 
@@ -3221,7 +3233,11 @@ brush_t * Patch_Parse( bool bOld ) {
 		//}
 
 		GetToken(false);
+#ifdef IDT4_VANILLA
 		if ( strcmp(token, ")") )
+#else
+		if ( idStr::Cmp(token, ")") )
+#endif // IDT4_VANILLA
 			return NULL;
 	}
 
@@ -3246,13 +3262,21 @@ brush_t * Patch_Parse( bool bOld ) {
 
 	if ( g_qeglobals.m_bBrushPrimitMode ) {
 		// we are in brush primit mode, but maybe it's a classic patch that needs converting, test "}"
+#ifdef IDT4_VANILLA
 		if ( strcmp(token, "}") && strcmp(token, "(") ) {
+#else
+		if ( idStr::Cmp(token, "}") && idStr::Cmp(token, "(") ) {
+#endif // IDT4_VANILLA
 			ParseEpair(pm->epairs);
 			GetToken(true);
 		}
 	}
 
+#ifdef IDT4_VANILLA
 	if ( strcmp(token, "}") ) {
+#else
+	if ( idStr::Cmp(token, "}") ) {
+#endif // IDT4_VANILLA
 		return NULL;
 	}
 

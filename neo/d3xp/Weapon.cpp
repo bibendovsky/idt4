@@ -3783,7 +3783,11 @@ void idWeapon::Event_Melee( void ) {
 #ifdef _D3XP
 				//Adjust the melee powerup modifier for the invulnerability boss fight
 				float mod = owner->PowerUpModifier( MELEE_DAMAGE );
+#ifdef IDT4_VANILLA
 				if(!strcmp(ent->GetEntityDefName(), "monster_hunter_invul")) {
+#else
+				if(!idStr::Cmp(ent->GetEntityDefName(), "monster_hunter_invul")) {
+#endif // IDT4_VANILLA
 					//Only do a quater of the damage mod
 					mod *= 0.25f;
 				}

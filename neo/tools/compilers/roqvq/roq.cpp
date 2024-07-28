@@ -148,7 +148,11 @@ void roq::EncodeStream( const char *paramInputFile )
 			encoder->SparseEncode();
 //			WriteLossless();
 		} else {
+#ifdef IDT4_VANILLA
 			if (!strcmp( f0, f1 ) && strcmp( f1, f2) ) {
+#else
+			if (!idStr::Cmp( f0, f1 ) && idStr::Cmp( f1, f2) ) {
+#endif // IDT4_VANILLA
 				WriteHangFrame();
 			} else {
 				encoder->SparseEncode();

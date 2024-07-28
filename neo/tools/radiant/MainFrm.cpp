@@ -1190,7 +1190,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct) {
  */
 
 void FindReplace(CString& strContents, const char* pTag, const char* pValue) {
+#ifdef IDT4_VANILLA
 	if (strcmp(pTag, pValue) == 0)
+#else
+	if (idStr::Cmp(pTag, pValue) == 0)
+#endif // IDT4_VANILLA
 		return;
 	for (int nPos = strContents.Find(pTag); nPos >= 0; nPos = strContents.Find(pTag)) {
 		int nRightLen = strContents.GetLength() - strlen(pTag) - nPos;
@@ -1901,7 +1905,11 @@ void CMainFrame::OnFilePrintPreview() {
  =======================================================================================================================
  */
 void CMainFrame::OnFileSave() {
+#ifdef IDT4_VANILLA
 	if (!strcmp(currentmap, "unnamed.map")) {
+#else
+	if (!idStr::Cmp(currentmap, "unnamed.map")) {
+#endif // IDT4_VANILLA
 		SaveAsDialog(false);
 	}
 	else {
@@ -2195,7 +2203,11 @@ void RunBsp (const char *command) {
 }
 
 void CMainFrame::OnBspCommand(unsigned int nID) {
+#ifdef IDT4_VANILLA
 	if (g_PrefsDlg.m_bSnapShots && stricmp(currentmap, "unnamed.map") != 0) {
+#else
+	if (g_PrefsDlg.m_bSnapShots && idStr::Icmp(currentmap, "unnamed.map") != 0) {
+#endif // IDT4_VANILLA
 		Map_Snapshot();
 	}
 
@@ -2801,9 +2813,17 @@ bool FindNextBrush(brush_t* pPrevFoundBrush)	// can be NULL for fresh search
 				if (strlen(psEntFoundValue)
 						&&
 						(
+#ifdef IDT4_VANILLA
 //							(stricmp(strFindValue, psEntFoundValue)==0)	// found this exact key/value
+#else
+//							(idStr::Icmp(strFindValue, psEntFoundValue)==0)	// found this exact key/value
+#endif // IDT4_VANILLA
 							(
+#ifdef IDT4_VANILLA
 							(gbWholeStringMatchOnly && stricmp(psEntFoundValue, strFindValue)==0)
+#else
+							(gbWholeStringMatchOnly && idStr::Icmp(psEntFoundValue, strFindValue)==0)
+#endif // IDT4_VANILLA
 							||
 							(!gbWholeStringMatchOnly && strstr(String_ToLower(psEntFoundValue), String_ToLower(strFindValue)))
 							)
@@ -2827,7 +2847,11 @@ bool FindNextBrush(brush_t* pPrevFoundBrush)	// can be NULL for fresh search
 					{
 						if (	(strlen(psEntFoundValue) &&	strFindValue.IsEmpty())	// if blank <value> search specified then any found-value is ok
 								||
+#ifdef IDT4_VANILLA
 								(gbWholeStringMatchOnly && stricmp(psEntFoundValue, strFindValue)==0)
+#else
+								(gbWholeStringMatchOnly && idStr::Icmp(psEntFoundValue, strFindValue)==0)
+#endif // IDT4_VANILLA
 								||
 								(!gbWholeStringMatchOnly && strstr(String_ToLower(psEntFoundValue), String_ToLower(strFindValue)))
 							)
@@ -2934,7 +2958,11 @@ void CMainFrame::OnMiscFindOrReplaceEntity()
 
 					const char *psEntFoundValue = ValueForKey(ent, strFindKey);
 
+#ifdef IDT4_VANILLA
 					if (stricmp(strFindValue, psEntFoundValue)==0 ||		// found this exact key/value
+#else
+					if (idStr::Icmp(strFindValue, psEntFoundValue)==0 ||		// found this exact key/value
+#endif // IDT4_VANILLA
 						(strlen(psEntFoundValue) &&	strFindValue.IsEmpty()) // or any value for this key if blank value search specified
 						)
 					{

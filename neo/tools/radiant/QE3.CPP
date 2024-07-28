@@ -172,7 +172,11 @@ void QE_CheckAutoSave(void) {
 		CString strMsg = g_PrefsDlg.m_bSnapShots ? "Autosaving snapshot..." : "Autosaving...";
 		Sys_Status(strMsg.GetBuffer(0), 0);
 
+#ifdef IDT4_VANILLA
 		if (g_PrefsDlg.m_bSnapShots && stricmp(currentmap, "unnamed.map") != 0) {
+#else
+		if (g_PrefsDlg.m_bSnapShots && idStr::Icmp(currentmap, "unnamed.map") != 0) {
+#endif // IDT4_VANILLA
 			Map_Snapshot();
 		} else {
 			Map_SaveFile(ValueForKey(g_qeglobals.d_project_entity, (autoToggle == 0) ? "autosave1" : "autosave2" ), false, true);

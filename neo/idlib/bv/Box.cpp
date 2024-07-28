@@ -305,7 +305,11 @@ bool idBox::AddBox( const idBox &a ) {
 	}
 
 	// get the bounds with the smallest volume
+#ifdef IDT4_VANILLA
 	bestv = idMath::INFINITY;
+#else
+	bestv = idMath::INFINITY_;
+#endif // IDT4_VANILLA
 	besti = 0;
 	for ( i = 0; i < 4; i++ ) {
 		v = bounds[i].GetVolume();
@@ -617,8 +621,13 @@ bool idBox::RayIntersection( const idVec3 &start, const idVec3 &dir, float &scal
 	localStart = ( start - center ) * axis.Transpose();
 	localDir = dir * axis.Transpose();
 
+#ifdef IDT4_VANILLA
 	scale1 = -idMath::INFINITY;
 	scale2 = idMath::INFINITY;
+#else
+	scale1 = -idMath::INFINITY_;
+	scale2 = idMath::INFINITY_;
+#endif // IDT4_VANILLA
     return	BoxPlaneClip(  localDir.x, -localStart.x - extents[0], scale1, scale2 ) &&
 			BoxPlaneClip( -localDir.x,  localStart.x - extents[0], scale1, scale2 ) &&
 			BoxPlaneClip(  localDir.y, -localStart.y - extents[1], scale1, scale2 ) &&

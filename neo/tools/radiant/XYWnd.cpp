@@ -1639,7 +1639,11 @@ void CXYWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) {
 void CreateEntityFromName(char *pName, brush_t *pBrush, bool forceFixed, idVec3 min, idVec3 max, idVec3 org) {
 	eclass_t	*pecNew;
 	entity_t	*petNew;
+#ifdef IDT4_VANILLA
 	if (stricmp(pName, "worldspawn") == 0) {
+#else
+	if (idStr::Icmp(pName, "worldspawn") == 0) {
+#endif // IDT4_VANILLA
 		g_pParentWnd->MessageBox("Can't create an entity with worldspawn.", "info", 0);
 		return;
 	}
@@ -3358,7 +3362,11 @@ void DrawPathLines(void) {
 		}
 
 		for (k = 0; k < num_entities; k++) {
+#ifdef IDT4_VANILLA
 			if (strcmp(ent_target[k], psz)) {
+#else
+			if (idStr::Cmp(ent_target[k], psz)) {
+#endif // IDT4_VANILLA
 				continue;
 			}
 

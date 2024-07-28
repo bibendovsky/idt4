@@ -525,7 +525,11 @@ bool idAASSettings::ValidEntity( const char *classname ) const {
 	idBounds		bounds;
 
 	if ( playerFlood ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( classname, "info_player_start" ) || !strcmp( classname , "info_player_deathmatch" ) || !strcmp( classname, "func_teleporter" ) ) {
+#else
+		if ( !idStr::Cmp( classname, "info_player_start" ) || !idStr::Cmp( classname , "info_player_deathmatch" ) || !idStr::Cmp( classname, "func_teleporter" ) ) {
+#endif // IDT4_VANILLA
 			return true;
 		}
 	}

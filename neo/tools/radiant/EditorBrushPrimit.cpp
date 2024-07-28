@@ -213,7 +213,11 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 	face_t	*f;
 	int		i, j;
 	GetToken(true);
+#ifdef IDT4_VANILLA
 	if (strcmp(token, "{")) {
+#else
+	if (idStr::Cmp(token, "{")) {
+#endif // IDT4_VANILLA
 		Warning("parsing brush primitive");
 		return;
 	}
@@ -223,12 +227,20 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 			break;
 		}
 
+#ifdef IDT4_VANILLA
 		if (!strcmp(token, "}")) {
+#else
+		if (!idStr::Cmp(token, "}")) {
+#endif // IDT4_VANILLA
 			break;
 		}
 
 		// reading of b->epairs if any
+#ifdef IDT4_VANILLA
 		if (strcmp(token, "(")) {
+#else
+		if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 			ParseEpair(&b->epairs);
 		}
 		else {	// it's a face
@@ -274,7 +286,11 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 						GetToken(true);
 					}
 
+#ifdef IDT4_VANILLA
 					if (strcmp(token, "(")) {
+#else
+					if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 						Warning("parsing brush");
 						return;
 					}
@@ -285,7 +301,11 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 					}
 
 					GetToken(false);
+#ifdef IDT4_VANILLA
 					if (strcmp(token, ")")) {
+#else
+					if (idStr::Cmp(token, ")")) {
+#endif // IDT4_VANILLA
 						Warning("parsing brush");
 						return;
 					}
@@ -294,13 +314,21 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 
 			// texture coordinates
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, "(")) {
+#else
+			if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}
 
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, "(")) {
+#else
+			if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}
@@ -311,13 +339,21 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 			}
 
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, ")")) {
+#else
+			if (idStr::Cmp(token, ")")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}
 
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, "(")) {
+#else
+			if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}
@@ -328,13 +364,21 @@ void BrushPrimit_Parse(brush_t *b, bool newFormat, const idVec3 origin) {
 			}
 
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, ")")) {
+#else
+			if (idStr::Cmp(token, ")")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}
 
 			GetToken(false);
+#ifdef IDT4_VANILLA
 			if (strcmp(token, ")")) {
+#else
+			if (idStr::Cmp(token, ")")) {
+#endif // IDT4_VANILLA
 				Warning("parsing brush primitive");
 				return;
 			}

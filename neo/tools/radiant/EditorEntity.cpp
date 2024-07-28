@@ -174,7 +174,11 @@ void SetKeyMat3(entity_t *ent, const char *key, idMat3 m) {
  */
 void DeleteKey(entity_t *ent, const char *key) {
 	ent->epairs.Delete(key);
+#ifdef IDT4_VANILLA
 	if (stricmp(key, "rotation") == 0) {
+#else
+	if (idStr::Icmp(key, "rotation") == 0) {
+#endif // IDT4_VANILLA
 		ent->rotation.Identity();
 	}
 }
@@ -801,7 +805,11 @@ entity_t *Entity_Parse(bool onlypairs, brush_t *pList) {
 		return NULL;
 	}
 
+#ifdef IDT4_VANILLA
 	if (strcmp(token, "{")) {
+#else
+	if (idStr::Cmp(token, "{")) {
+#endif // IDT4_VANILLA
 		Error("ParseEntity: { not found");
 	}
 
@@ -816,11 +824,19 @@ entity_t *Entity_Parse(bool onlypairs, brush_t *pList) {
 			return NULL;
 		}
 
+#ifdef IDT4_VANILLA
 		if (!strcmp(token, "}")) {
+#else
+		if (!idStr::Cmp(token, "}")) {
+#endif // IDT4_VANILLA
 			break;
 		}
 
+#ifdef IDT4_VANILLA
 		if (!strcmp(token, "{")) {
+#else
+		if (!idStr::Cmp(token, "{")) {
+#endif // IDT4_VANILLA
 			GetVectorForKey(ent, "origin", ent->origin);
 			brush_t *b = Brush_Parse(ent->origin);
 			if (b != NULL) {
@@ -872,7 +888,11 @@ void Entity_Write(entity_t *e, FILE *f, bool use_region) {
 	// if none of the entities brushes are in the region, don't write the entity at all
 	if (use_region) {
 		// in region mode, save the camera position as playerstart
+#ifdef IDT4_VANILLA
 		if (!strcmp(ValueForKey(e, "classname"), "info_player_start")) {
+#else
+		if (!idStr::Cmp(ValueForKey(e, "classname"), "info_player_start")) {
+#endif // IDT4_VANILLA
 			fprintf(f, "{\n");
 			fprintf(f, "\"classname\" \"info_player_start\"\n");
 			fprintf
@@ -1330,7 +1350,11 @@ entity_t *FindEntity(const char *pszKey, const char *pszValue) {
 	pe = entities.next;
 
 	for (; pe != NULL && pe != &entities; pe = pe->next) {
+#ifdef IDT4_VANILLA
 		if (!strcmp(ValueForKey(pe, pszKey), pszValue)) {
+#else
+		if (!idStr::Cmp(ValueForKey(pe, pszKey), pszValue)) {
+#endif // IDT4_VANILLA
 			return pe;
 		}
 	}

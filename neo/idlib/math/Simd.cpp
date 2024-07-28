@@ -1277,8 +1277,13 @@ void TestMinMax( void ) {
 
 	bestClocksGeneric = 0;
 	for ( i = 0; i < NUMTESTS; i++ ) {
+#ifdef IDT4_VANILLA
 		min = idMath::INFINITY;
 		max = -idMath::INFINITY;
+#else
+		min = idMath::INFINITY_;
+		max = -idMath::INFINITY_;
+#endif // IDT4_VANILLA
 		StartRecordTime( start );
 		p_generic->MinMax( min, max, fsrc0, COUNT );
 		StopRecordTime( end );

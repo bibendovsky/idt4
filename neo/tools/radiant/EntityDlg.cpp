@@ -603,8 +603,13 @@ void CEntityDlg::AddProp() {
 	editKey.GetWindowText(Key);
 	editVal.GetWindowText(Value);
 
+#ifdef IDT4_VANILLA
 	bool isName = (stricmp(Key, "name") == 0);
 	bool isModel = static_cast<bool>((stricmp(Key, "model") == 0 && Value.GetLength() > 0));
+#else
+	bool isName = (idStr::Icmp(Key, "name") == 0);
+	bool isModel = static_cast<bool>((idStr::Icmp(Key, "model") == 0 && Value.GetLength() > 0));
+#endif // IDT4_VANILLA
 	bool isOrigin = ( idStr::Icmp( Key, "origin" ) == 0 );
 
 	if (multipleEntities) {
@@ -971,7 +976,11 @@ void CEntityDlg::CreateEntity() {
 	CString str;
 	comboClass.GetLBText(index, str);
 
+#ifdef IDT4_VANILLA
 	if (!stricmp(str, "worldspawn")) {
+#else
+	if (!idStr::Icmp(str, "worldspawn")) {
+#endif // IDT4_VANILLA
 		MessageBox("Can't create an entity with worldspawn.", "info", 0);
 		return;
 	}
@@ -1031,7 +1040,11 @@ void CEntityDlg::OnLbnDblclkListkeyval()
 	idStr work;
 	editKey.GetWindowText( Key );
 	editVal.GetWindowText( Value );
+#ifdef IDT4_VANILLA
 	if ( stricmp( Key, "script" ) == 0 ) {
+#else
+	if ( idStr::Icmp( Key, "script" ) == 0 ) {
+#endif // IDT4_VANILLA
 		Key = Value;
 		Value = "script/" + Key;
 		if ( fileSystem->ReadFile( Value, NULL, NULL ) == -1) {

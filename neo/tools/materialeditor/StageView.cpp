@@ -183,7 +183,11 @@ void StageView::MV_OnMaterialStageMove(MaterialDoc* pMaterial, int from, int to)
 void StageView::MV_OnMaterialAttributeChanged(MaterialDoc* pMaterial, int stage, const char* attribName) {
 
 	//Refresh this stage list if a material name has changed
+#ifdef IDT4_VANILLA
 	if(!internalChange && currentMaterial == pMaterial && stage >= 0 && attribName && !strcmp(attribName, "name") ) {
+#else
+	if(!internalChange && currentMaterial == pMaterial && stage >= 0 && attribName && !idStr::Cmp(attribName, "name") ) {
+#endif // IDT4_VANILLA
 		CListCtrl& list = GetListCtrl();
 		list.SetItemText(stage+1, 0, currentMaterial->GetAttribute(stage, attribName));
 	}

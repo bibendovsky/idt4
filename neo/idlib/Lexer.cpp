@@ -200,7 +200,11 @@ int idLexer::GetPunctuationId( const char *p ) {
 	int i;
 
 	for (i = 0; idLexer::punctuations[i].p; i++) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp(idLexer::punctuations[i].p, p) ) {
+#else
+		if ( !idStr::Cmp(idLexer::punctuations[i].p, p) ) {
+#endif // IDT4_VANILLA
 			return idLexer::punctuations[i].n;
 		}
 	}

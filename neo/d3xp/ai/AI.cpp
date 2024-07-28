@@ -4842,7 +4842,11 @@ void idAI::TriggerParticles( const char *jointName ) {
 #ifdef _D3XP
 void idAI::TriggerFX( const char* joint, const char* fx ) {
 	
+#ifdef IDT4_VANILLA
 	if( !strcmp(joint, "origin") ) {
+#else
+	if( !idStr::Cmp(joint, "origin") ) {
+#endif // IDT4_VANILLA
 		idEntityFx::StartFx( fx, NULL, NULL, this, true );
 	} else {
 		idVec3	joint_origin;

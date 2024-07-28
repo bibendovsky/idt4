@@ -606,7 +606,11 @@ bool FloodEntities( tree_t *tree ) {
 
 		mapEnt->epairs.GetString( "classname", "", &cl );
 
+#ifdef IDT4_VANILLA
 		if ( !strcmp( cl, "light" ) ) {
+#else
+		if ( !idStr::Cmp( cl, "light" ) ) {
+#endif // IDT4_VANILLA
 			const char	*v;
 
 			// don't place lights that have a light_start field, because they can still

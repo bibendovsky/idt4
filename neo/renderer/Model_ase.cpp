@@ -120,11 +120,19 @@ static void ASE_ParseBracedBlock( void (*parser)( const char *token ) )
 
 	while ( ASE_GetToken( false ) )
 	{
+#ifdef IDT4_VANILLA
 		if ( !strcmp( ase.token, "{" ) )
+#else
+		if ( !idStr::Cmp( ase.token, "{" ) )
+#endif // IDT4_VANILLA
 		{
 			indent++;
 		}
+#ifdef IDT4_VANILLA
 		else if ( !strcmp( ase.token, "}" ) )
+#else
+		else if ( !idStr::Cmp( ase.token, "}" ) )
+#endif // IDT4_VANILLA
 		{
 			--indent;
 			if ( indent == 0 )
@@ -146,11 +154,19 @@ static void ASE_SkipEnclosingBraces( void )
 
 	while ( ASE_GetToken( false ) )
 	{
+#ifdef IDT4_VANILLA
 		if ( !strcmp( ase.token, "{" ) )
+#else
+		if ( !idStr::Cmp( ase.token, "{" ) )
+#endif // IDT4_VANILLA
 		{
 			indent++;
 		}
+#ifdef IDT4_VANILLA
 		else if ( !strcmp( ase.token, "}" ) )
+#else
+		else if ( !idStr::Cmp( ase.token, "}" ) )
+#endif // IDT4_VANILLA
 		{
 			indent--;
 			if ( indent == 0 )
@@ -170,7 +186,11 @@ static void ASE_KeyMAP_DIFFUSE( const char *token )
 {
 	aseMaterial_t	*material;
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*BITMAP" ) )
+#else
+	if ( !idStr::Cmp( token, "*BITMAP" ) )
+#endif // IDT4_VANILLA
 	{
 		idStr	qpath;
 		idStr	matname;
@@ -189,31 +209,51 @@ static void ASE_KeyMAP_DIFFUSE( const char *token )
 		qpath = fileSystem->OSPathToRelativePath( matname );
 		idStr::Copynz( ase.currentMaterial->name, qpath, sizeof( ase.currentMaterial->name ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*UVW_U_OFFSET" ) )
+#else
+	else if ( !idStr::Cmp( token, "*UVW_U_OFFSET" ) )
+#endif // IDT4_VANILLA
 	{
 		material = ase.model->materials[ase.model->materials.Num() - 1];
 		ASE_GetToken( false );
 		material->uOffset = atof( ase.token );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*UVW_V_OFFSET" ) )
+#else
+	else if ( !idStr::Cmp( token, "*UVW_V_OFFSET" ) )
+#endif // IDT4_VANILLA
 	{
 		material = ase.model->materials[ase.model->materials.Num() - 1];
 		ASE_GetToken( false );
 		material->vOffset = atof( ase.token );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*UVW_U_TILING" ) )
+#else
+	else if ( !idStr::Cmp( token, "*UVW_U_TILING" ) )
+#endif // IDT4_VANILLA
 	{
 		material = ase.model->materials[ase.model->materials.Num() - 1];
 		ASE_GetToken( false );
 		material->uTiling = atof( ase.token );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*UVW_V_TILING" ) )
+#else
+	else if ( !idStr::Cmp( token, "*UVW_V_TILING" ) )
+#endif // IDT4_VANILLA
 	{
 		material = ase.model->materials[ase.model->materials.Num() - 1];
 		ASE_GetToken( false );
 		material->vTiling = atof( ase.token );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*UVW_ANGLE" ) )
+#else
+	else if ( !idStr::Cmp( token, "*UVW_ANGLE" ) )
+#endif // IDT4_VANILLA
 	{
 		material = ase.model->materials[ase.model->materials.Num() - 1];
 		ASE_GetToken( false );
@@ -226,7 +266,11 @@ static void ASE_KeyMAP_DIFFUSE( const char *token )
 
 static void ASE_KeyMATERIAL( const char *token )
 {
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MAP_DIFFUSE" ) )
+#else
+	if ( !idStr::Cmp( token, "*MAP_DIFFUSE" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_ParseBracedBlock( ASE_KeyMAP_DIFFUSE );
 	}
@@ -237,12 +281,20 @@ static void ASE_KeyMATERIAL( const char *token )
 
 static void ASE_KeyMATERIAL_LIST( const char *token )
 {
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MATERIAL_COUNT" ) )
+#else
+	if ( !idStr::Cmp( token, "*MATERIAL_COUNT" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 		VERBOSE( ( "..num materials: %s\n", ase.token ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MATERIAL" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MATERIAL" ) )
+#endif // IDT4_VANILLA
 	{
 		VERBOSE( ( "..material %d\n", ase.model->materials.Num() ) );
 
@@ -260,22 +312,38 @@ static void ASE_KeyNODE_TM( const char *token )
 {
 	int		i;
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*TM_ROW0" ) ) {
+#else
+	if ( !idStr::Cmp( token, "*TM_ROW0" ) ) {
+#endif // IDT4_VANILLA
 		for ( i = 0 ; i < 3 ; i++ ) {
 			ASE_GetToken( false );
 			ase.currentObject->mesh.transform[0][i] = atof( ase.token );
 		}
+#ifdef IDT4_VANILLA
 	} else if ( !strcmp( token, "*TM_ROW1" ) ) {
+#else
+	} else if ( !idStr::Cmp( token, "*TM_ROW1" ) ) {
+#endif // IDT4_VANILLA
 		for ( i = 0 ; i < 3 ; i++ ) {
 			ASE_GetToken( false );
 			ase.currentObject->mesh.transform[1][i] = atof( ase.token );
 		}
+#ifdef IDT4_VANILLA
 	} else if ( !strcmp( token, "*TM_ROW2" ) ) {
+#else
+	} else if ( !idStr::Cmp( token, "*TM_ROW2" ) ) {
+#endif // IDT4_VANILLA
 		for ( i = 0 ; i < 3 ; i++ ) {
 			ASE_GetToken( false );
 			ase.currentObject->mesh.transform[2][i] = atof( ase.token );
 		}
+#ifdef IDT4_VANILLA
 	} else if ( !strcmp( token, "*TM_ROW3" ) ) {
+#else
+	} else if ( !idStr::Cmp( token, "*TM_ROW3" ) ) {
+#endif // IDT4_VANILLA
 		for ( i = 0 ; i < 3 ; i++ ) {
 			ASE_GetToken( false );
 			ase.currentObject->mesh.transform[3][i] = atof( ase.token );
@@ -287,7 +355,11 @@ static void ASE_KeyMESH_VERTEX_LIST( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_VERTEX" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_VERTEX" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );		// skip number
 
@@ -317,7 +389,11 @@ static void ASE_KeyMESH_FACE_LIST( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_FACE" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_FACE" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );	// skip face number
 
@@ -362,7 +438,11 @@ static void ASE_KeyTFACE_LIST( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_TFACE" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_TFACE" ) )
+#endif // IDT4_VANILLA
 	{
 		int a, b, c;
 
@@ -391,7 +471,11 @@ static void ASE_KeyCFACE_LIST( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_CFACE" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_CFACE" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
@@ -418,7 +502,11 @@ static void ASE_KeyMESH_TVERTLIST( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_TVERT" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_TVERT" ) )
+#endif // IDT4_VANILLA
 	{
 		char u[80], v[80], w[80];
 
@@ -456,7 +544,11 @@ static void ASE_KeyMESH_CVERTLIST( const char *token )
 
 	pMesh->colorsParsed = true;
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_VERTCOL" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_VERTCOL" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
@@ -490,7 +582,11 @@ static void ASE_KeyMESH_NORMALS( const char *token )
 	pMesh->normalsParsed = true;
 	f = &pMesh->faces[ase.currentFace];
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH_FACENORMAL" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH_FACENORMAL" ) )
+#endif // IDT4_VANILLA
 	{
 		int	num;
 
@@ -520,7 +616,11 @@ static void ASE_KeyMESH_NORMALS( const char *token )
 
 		ase.currentFace++;
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_VERTEXNORMAL" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_VERTEXNORMAL" ) )
+#endif // IDT4_VANILLA
 	{
 		int	num;
 		int	v;
@@ -563,42 +663,66 @@ static void ASE_KeyMESH( const char *token )
 {
 	aseMesh_t *pMesh = ASE_GetCurrentMesh();
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*TIMEVALUE" ) )
+#else
+	if ( !idStr::Cmp( token, "*TIMEVALUE" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		pMesh->timeValue = atoi( ase.token );
 		VERBOSE( ( ".....timevalue: %d\n", pMesh->timeValue ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMVERTEX" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMVERTEX" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		pMesh->numVertexes = atoi( ase.token );
 		VERBOSE( ( ".....num vertexes: %d\n", pMesh->numVertexes ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMTVERTEX" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMTVERTEX" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		pMesh->numTVertexes = atoi( ase.token );
 		VERBOSE( ( ".....num tvertexes: %d\n", pMesh->numTVertexes ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMCVERTEX" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMCVERTEX" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		pMesh->numCVertexes = atoi( ase.token );
 		VERBOSE( ( ".....num cvertexes: %d\n", pMesh->numCVertexes ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMFACES" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMFACES" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		pMesh->numFaces = atoi( ase.token );
 		VERBOSE( ( ".....num faces: %d\n", pMesh->numFaces ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMTVFACES" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMTVFACES" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
@@ -610,7 +734,11 @@ static void ASE_KeyMESH( const char *token )
 			common->Error( "MESH_NUMTVFACES != MESH_NUMFACES" );
 		}
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NUMCVFACES" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NUMCVFACES" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
@@ -622,35 +750,55 @@ static void ASE_KeyMESH( const char *token )
 			common->Error( "MESH_NUMCVFACES != MESH_NUMFACES" );
 		}
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_VERTEX_LIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_VERTEX_LIST" ) )
+#endif // IDT4_VANILLA
 	{
 		pMesh->vertexes = (idVec3 *)Mem_Alloc( sizeof( idVec3 ) * pMesh->numVertexes );
 		ase.currentVertex = 0;
 		VERBOSE( ( ".....parsing MESH_VERTEX_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_VERTEX_LIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_TVERTLIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_TVERTLIST" ) )
+#endif // IDT4_VANILLA
 	{
 		ase.currentVertex = 0;
 		pMesh->tvertexes = (idVec2 *)Mem_Alloc( sizeof( idVec2 ) * pMesh->numTVertexes );
 		VERBOSE( ( ".....parsing MESH_TVERTLIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_TVERTLIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_CVERTLIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_CVERTLIST" ) )
+#endif // IDT4_VANILLA
 	{
 		ase.currentVertex = 0;
 		pMesh->cvertexes = (idVec3 *)Mem_Alloc( sizeof( idVec3 ) * pMesh->numCVertexes );
 		VERBOSE( ( ".....parsing MESH_CVERTLIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_CVERTLIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_FACE_LIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_FACE_LIST" ) )
+#endif // IDT4_VANILLA
 	{
 		pMesh->faces = (aseFace_t *)Mem_Alloc( sizeof( aseFace_t ) * pMesh->numFaces );
 		ase.currentFace = 0;
 		VERBOSE( ( ".....parsing MESH_FACE_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_FACE_LIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_TFACELIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_TFACELIST" ) )
+#endif // IDT4_VANILLA
 	{
 		if ( !pMesh->faces ) {
 			common->Error( "*MESH_TFACELIST before *MESH_FACE_LIST" );
@@ -659,7 +807,11 @@ static void ASE_KeyMESH( const char *token )
 		VERBOSE( ( ".....parsing MESH_TFACE_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyTFACE_LIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_CFACELIST" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_CFACELIST" ) )
+#endif // IDT4_VANILLA
 	{
 		if ( !pMesh->faces ) {
 			common->Error( "*MESH_CFACELIST before *MESH_FACE_LIST" );
@@ -668,7 +820,11 @@ static void ASE_KeyMESH( const char *token )
 		VERBOSE( ( ".....parsing MESH_CFACE_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyCFACE_LIST );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_NORMALS" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_NORMALS" ) )
+#endif // IDT4_VANILLA
 	{
 		if ( !pMesh->faces ) {
 			common->Warning( "*MESH_NORMALS before *MESH_FACE_LIST" );
@@ -684,7 +840,11 @@ static void ASE_KeyMESH_ANIMATION( const char *token )
 	aseMesh_t *mesh;
 
 	// loads a single animation frame
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*MESH" ) )
+#else
+	if ( !idStr::Cmp( token, "*MESH" ) )
+#endif // IDT4_VANILLA
 	{
 		VERBOSE( ( "...found MESH\n" ) );
 
@@ -708,24 +868,41 @@ static void ASE_KeyGEOMOBJECT( const char *token )
 
 	object = ase.currentObject;
 
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*NODE_NAME" ) )
+#else
+	if ( !idStr::Cmp( token, "*NODE_NAME" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( true );
 		VERBOSE( ( " %s\n", ase.token ) );
 		idStr::Copynz( object->name, ase.token, sizeof( object->name ) );
 	}
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*NODE_PARENT" ) )
+#else
+	else if ( !idStr::Cmp( token, "*NODE_PARENT" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_SkipRestOfLine();
 	}
 	// ignore unused data blocks
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*NODE_TM" ) ||
 		      !strcmp( token, "*TM_ANIMATION" ) )
+#else
+	else if ( !idStr::Cmp( token, "*NODE_TM" ) ||
+		      !idStr::Cmp( token, "*TM_ANIMATION" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_ParseBracedBlock( ASE_KeyNODE_TM );
 	}
 	// ignore regular meshes that aren't part of animation
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH" ) )
+#endif // IDT4_VANILLA
 	{
 		ase.currentMesh = &ase.currentObject->mesh;
 		memset( ase.currentMesh, 0, sizeof( ase.currentMesh ) );
@@ -733,23 +910,37 @@ static void ASE_KeyGEOMOBJECT( const char *token )
 		ASE_ParseBracedBlock( ASE_KeyMESH );
 	}
 	// according to spec these are obsolete
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MATERIAL_REF" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MATERIAL_REF" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_GetToken( false );
 
 		object->materialRef = atoi( ase.token );
 	}
 	// loads a sequence of animation frames
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*MESH_ANIMATION" ) )
+#else
+	else if ( !idStr::Cmp( token, "*MESH_ANIMATION" ) )
+#endif // IDT4_VANILLA
 	{
 		VERBOSE( ( "..found MESH_ANIMATION\n" ) );
 
 		ASE_ParseBracedBlock( ASE_KeyMESH_ANIMATION );
 	}
 	// skip unused info
+#ifdef IDT4_VANILLA
 	else if ( !strcmp( token, "*PROP_MOTIONBLUR" ) ||
 		      !strcmp( token, "*PROP_CASTSHADOW" ) ||
 			  !strcmp( token, "*PROP_RECVSHADOW" ) )
+#else
+	else if ( !idStr::Cmp( token, "*PROP_MOTIONBLUR" ) ||
+		      !idStr::Cmp( token, "*PROP_CASTSHADOW" ) ||
+			  !idStr::Cmp( token, "*PROP_RECVSHADOW" ) )
+#endif // IDT4_VANILLA
 	{
 		ASE_SkipRestOfLine();
 	}
@@ -773,7 +964,11 @@ void ASE_ParseGeomObject( void ) {
 
 static void ASE_KeyGROUP( const char *token )
 {
+#ifdef IDT4_VANILLA
 	if ( !strcmp( token, "*GEOMOBJECT" ) ) {
+#else
+	if ( !idStr::Cmp( token, "*GEOMOBJECT" ) ) {
+#endif // IDT4_VANILLA
 		ASE_ParseGeomObject();
 	}
 }
@@ -800,6 +995,7 @@ aseModel_t *ASE_Parse( const char *buffer, bool verbose ) {
 	ase.model->materials.Resize( 32, 32 );
 
 	while ( ASE_GetToken( false ) ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( ase.token, "*3DSMAX_ASCIIEXPORT" ) ||
 			 !strcmp( ase.token, "*COMMENT" ) ) {
 			ASE_SkipRestOfLine();
@@ -821,6 +1017,29 @@ aseModel_t *ASE_Parse( const char *buffer, bool verbose ) {
 		} else if ( ase.token[0] ) {
 			common->Printf( "Unknown token '%s'\n", ase.token );
 		}
+#else
+		if ( !idStr::Cmp( ase.token, "*3DSMAX_ASCIIEXPORT" ) ||
+			 !idStr::Cmp( ase.token, "*COMMENT" ) ) {
+			ASE_SkipRestOfLine();
+		} else if ( !idStr::Cmp( ase.token, "*SCENE" ) ) {
+			ASE_SkipEnclosingBraces();
+		} else if ( !idStr::Cmp( ase.token, "*GROUP" ) ) {
+			ASE_GetToken( false );		// group name
+			ASE_ParseBracedBlock( ASE_KeyGROUP );
+		} else if ( !idStr::Cmp( ase.token, "*SHAPEOBJECT" ) ) {
+			ASE_SkipEnclosingBraces();
+		} else if ( !idStr::Cmp( ase.token, "*CAMERAOBJECT" ) ) {
+			ASE_SkipEnclosingBraces();
+		} else if ( !idStr::Cmp( ase.token, "*MATERIAL_LIST" ) ) {
+			VERBOSE( ("MATERIAL_LIST\n") );
+
+			ASE_ParseBracedBlock( ASE_KeyMATERIAL_LIST );
+		} else if ( !idStr::Cmp( ase.token, "*GEOMOBJECT" ) ) {
+			ASE_ParseGeomObject();
+		} else if ( ase.token[0] ) {
+			common->Printf( "Unknown token '%s'\n", ase.token );
+		}
+#endif // IDT4_VANILLA
 	}
 
 	return ase.model;

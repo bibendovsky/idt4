@@ -1400,7 +1400,11 @@ brush_t *Brush_Parse(idVec3 origin) {
 			break;
 		}
 
+#ifdef IDT4_VANILLA
 		if (!strcmp(token, "}")) {
+#else
+		if (!idStr::Cmp(token, "}")) {
+#endif // IDT4_VANILLA
 			break;
 		}
 
@@ -1497,7 +1501,11 @@ brush_t *Brush_Parse(idVec3 origin) {
 					GetToken(true);
 				}
 
+#ifdef IDT4_VANILLA
 				if (strcmp(token, "(")) {
+#else
+				if (idStr::Cmp(token, "(")) {
+#endif // IDT4_VANILLA
 					Warning("parsing brush");
 					return NULL;
 				}
@@ -1508,7 +1516,11 @@ brush_t *Brush_Parse(idVec3 origin) {
 				}
 
 				GetToken(false);
+#ifdef IDT4_VANILLA
 				if (strcmp(token, ")")) {
+#else
+				if (idStr::Cmp(token, ")")) {
+#endif // IDT4_VANILLA
 					Warning("parsing brush");
 					return NULL;
 				}
@@ -2517,7 +2529,11 @@ bool Brush_ModelIntersect(brush_t *b, idVec3 origin, idVec3 dir,float &scale) {
 				md5 = b->owner->eclass->entityModel;
 
 				const char *classname = ValueForKey( b->owner, "classname" );
+#ifdef IDT4_VANILLA
 				if (stricmp(classname, "func_static") == 0) {
+#else
+				if (idStr::Icmp(classname, "func_static") == 0) {
+#endif // IDT4_VANILLA
 					classname = ValueForKey(b->owner, "animclass");
 				}
 				const char *anim = ValueForKey( b->owner, "anim" );
@@ -3967,7 +3983,11 @@ void Brush_DrawModel( brush_t *b, bool camera, bool bSelected ) {
 		if ( model->IsDynamicModel() != DM_STATIC ) {
 			if ( dynamic_cast<idRenderModelMD5 *>( model ) ) {
 				const char *classname = ValueForKey( b->owner, "classname" );
+#ifdef IDT4_VANILLA
 				if (stricmp(classname, "func_static") == 0) {
+#else
+				if (idStr::Icmp(classname, "func_static") == 0) {
+#endif // IDT4_VANILLA
 					classname = ValueForKey(b->owner, "animclass");
 				}
 				const char *anim = ValueForKey( b->owner, "anim" );

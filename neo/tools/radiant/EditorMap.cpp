@@ -148,7 +148,11 @@ entity_t *Map_FindClass(char *cname) {
 	entity_t	*ent;
 
 	for (ent = entities.next; ent != &entities; ent = ent->next) {
+#ifdef IDT4_VANILLA
 		if (!strcmp(cname, ValueForKey(ent, "classname"))) {
+#else
+		if (!idStr::Cmp(cname, ValueForKey(ent, "classname"))) {
+#endif // IDT4_VANILLA
 			return ent;
 		}
 	}
@@ -164,7 +168,11 @@ int Map_GetUniqueEntityID(const char *prefix, const char *eclass) {
 	entity_t	*ent;
 	int			id = 0;
 	for (ent = entities.next; ent != &entities; ent = ent->next) {
+#ifdef IDT4_VANILLA
 		if (!strcmp(eclass, ValueForKey(ent, "classname"))) {
+#else
+		if (!idStr::Cmp(eclass, ValueForKey(ent, "classname"))) {
+#endif // IDT4_VANILLA
 			const char	*name = ValueForKey(ent, "name");
 			if (name && name[0]) {
 				const char *buf;
@@ -667,7 +675,11 @@ bool Map_SaveFile(const char *filename, bool use_region, bool autosave) {
 		}
 	}
 
+#ifdef IDT4_VANILLA
 	if (filename == NULL || len == 0 || (filename && stricmp(filename, "unnamed.map") == 0)) {
+#else
+	if (filename == NULL || len == 0 || (filename && idStr::Icmp(filename, "unnamed.map") == 0)) {
+#endif // IDT4_VANILLA
 		CFileDialog dlgSave(FALSE,"map",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"Map Files (*.map)|*.map||",AfxGetMainWnd());
 		if (dlgSave.DoModal() == IDOK) {
 			filename = dlgSave.m_ofn.lpstrFile;
@@ -1167,7 +1179,11 @@ void Map_ImportBuffer(char *buf, bool renameEntities) {
 		g_qeglobals.mapVersion = 1.0;
 
 		if (GetToken(true)) {
+#ifdef IDT4_VANILLA
 			if (stricmp(token, "Version") == 0) {
+#else
+			if (idStr::Icmp(token, "Version") == 0) {
+#endif // IDT4_VANILLA
 				GetToken(false);
 				g_qeglobals.mapVersion = atof(token);
 				common->Printf("Map version: %1.2f\n", g_qeglobals.mapVersion);
@@ -1196,7 +1212,11 @@ void Map_ImportBuffer(char *buf, bool renameEntities) {
 				Undo_EndBrush(b);
 			}
 
+#ifdef IDT4_VANILLA
 			if (!strcmp(ValueForKey(ent, "classname"), "worldspawn")) {
+#else
+			if (!idStr::Cmp(ValueForKey(ent, "classname"), "worldspawn")) {
+#endif // IDT4_VANILLA
 				// world brushes need to be added to the current world entity
 				b = ent->brushes.onext;
 				while (b && b != &ent->brushes) {

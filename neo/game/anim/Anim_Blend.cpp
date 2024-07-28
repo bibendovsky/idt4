@@ -2396,7 +2396,11 @@ bool idDeclModelDef::ParseAnim( idLexer &src, int numDefaultAnims ) {
 	alias = realname;
 
 	for( i = 0; i < anims.Num(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( anims[ i ]->FullName(), realname ) ) {
+#else
+		if ( !idStr::Cmp( anims[ i ]->FullName(), realname ) ) {
+#endif // IDT4_VANILLA
 			break;
 		}
 	}
@@ -2782,7 +2786,11 @@ bool idDeclModelDef::HasAnim( const char *name ) const {
 
 	// find any animations with same name
 	for( i = 0; i < anims.Num(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( anims[ i ]->Name(), name ) ) {
+#else
+		if ( !idStr::Cmp( anims[ i ]->Name(), name ) ) {
+#endif // IDT4_VANILLA
 			return true;
 		}
 	}
@@ -2811,7 +2819,11 @@ int idDeclModelDef::GetSpecificAnim( const char *name ) const {
 
 	// find a specific animation
 	for( i = 0; i < anims.Num(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( anims[ i ]->FullName(), name ) ) {
+#else
+		if ( !idStr::Cmp( anims[ i ]->FullName(), name ) ) {
+#endif // IDT4_VANILLA
 			return i + 1;
 		}
 	}
@@ -2855,7 +2867,11 @@ int idDeclModelDef::GetAnim( const char *name ) const {
 	// find all animations with same name
 	numAnims = 0;
 	for( i = 0; i < anims.Num(); i++ ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( anims[ i ]->Name(), name ) ) {
+#else
+		if ( !idStr::Cmp( anims[ i ]->Name(), name ) ) {
+#endif // IDT4_VANILLA
 			animList[ numAnims++ ] = i;
 			if ( numAnims >= MAX_ANIMS ) {
 				break;

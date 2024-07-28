@@ -135,8 +135,16 @@ idEventDef::idEventDef( const char *command, const char *formatspec, char return
 	eventnum = numEventDefs;
 	for( i = 0; i < eventnum; i++ ) {
 		ev = eventDefList[ i ];
+#ifdef IDT4_VANILLA
 		if ( strcmp( command, ev->name ) == 0 ) {
+#else
+		if ( idStr::Cmp( command, ev->name ) == 0 ) {
+#endif // IDT4_VANILLA
+#ifdef IDT4_VANILLA
 			if ( strcmp( formatspec, ev->formatspec ) != 0 ) {
+#else
+			if ( idStr::Cmp( formatspec, ev->formatspec ) != 0 ) {
+#endif // IDT4_VANILLA
 				eventError = true;
 				sprintf( eventErrorMsg, "idEvent '%s' defined twice with same name but differing format strings ('%s'!='%s').",
 					command, formatspec, ev->formatspec );
@@ -199,7 +207,11 @@ const idEventDef *idEventDef::FindEvent( const char *name ) {
 	num = numEventDefs;
 	for( i = 0; i < num; i++ ) {
 		ev = eventDefList[ i ];
+#ifdef IDT4_VANILLA
 		if ( strcmp( name, ev->name ) == 0 ) {
+#else
+		if ( idStr::Cmp( name, ev->name ) == 0 ) {
+#endif // IDT4_VANILLA
 			return ev;
 		}
 	}

@@ -194,18 +194,30 @@ HTREEITEM CDialogTextures::findItem(const char *name, HTREEITEM item, HTREEITEM 
 				DWORD dw = m_treeTextures.GetItemData(nextItem);
 				if (dw == TEXTURES) {
 					const char *matName = buildItemName(nextItem, TypeNames[TEXTURES]);
+#ifdef IDT4_VANILLA
 					if ( !idStr::Icmpn( name, "textures/", 9 ) && stricmp(name + 9, matName) == 0) {
+#else
+					if ( !idStr::Icmpn( name, "textures/", 9 ) && idStr::Icmp(name + 9, matName) == 0) {
+#endif // IDT4_VANILLA
 						*foundItem = nextItem;
 						return *foundItem;
 					}
 				} else if (dw == MATERIALS) {
 					const char *matName = buildItemName(nextItem, TypeNames[MATERIALS]);
+#ifdef IDT4_VANILLA
 					if (stricmp(name, matName) == 0) {
+#else
+					if (idStr::Icmp(name, matName) == 0) {
+#endif // IDT4_VANILLA
 						*foundItem = nextItem;
 						return *foundItem;
 					}
 				} else if (dw == SOUNDS) {
+#ifdef IDT4_VANILLA
 					if (stricmp(name, m_treeTextures.GetItemText(nextItem)) == 0) {
+#else
+					if (idStr::Icmp(name, m_treeTextures.GetItemText(nextItem)) == 0) {
+#endif // IDT4_VANILLA
 						*foundItem = nextItem;
 						return *foundItem;
 					}
@@ -727,7 +739,11 @@ void CDialogTextures::addStrList( const char *root, const idStrList &list, int i
 	HTREEITEM base = m_treeTextures.GetRootItem();
 	while (base) {
 		out = m_treeTextures.GetItemText(base);
+#ifdef IDT4_VANILLA
 		if (stricmp(root, out) == 0) {
+#else
+		if (idStr::Icmp(root, out) == 0) {
+#endif // IDT4_VANILLA
 			break;
 		}
 		base = m_treeTextures.GetNextSiblingItem(base);

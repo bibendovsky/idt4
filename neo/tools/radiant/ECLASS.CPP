@@ -305,7 +305,11 @@ void EClass_InsertSortedList(eclass_t *&pList, eclass_t *e)
 
 
 	s = pList;
+#ifdef IDT4_VANILLA
 	if (stricmp (e->name, s->name) < 0)
+#else
+	if (idStr::Icmp (e->name, s->name) < 0)
+#endif // IDT4_VANILLA
 	{
 		e->next = s;
 		pList = e;
@@ -314,7 +318,11 @@ void EClass_InsertSortedList(eclass_t *&pList, eclass_t *e)
 
 	do
 	{
+#ifdef IDT4_VANILLA
 		if (!s->next || stricmp (e->name, s->next->name) < 0)
+#else
+		if (!s->next || idStr::Icmp (e->name, s->next->name) < 0)
+#endif // IDT4_VANILLA
 		{
 			e->next = s->next;
 			s->next = e;
@@ -344,7 +352,11 @@ void Eclass_InsertAlphabetized (eclass_t *e)
 
 
 	s = eclass;
+#ifdef IDT4_VANILLA
 	if (stricmp (e->name, s->name) < 0)
+#else
+	if (idStr::Icmp (e->name, s->name) < 0)
+#endif // IDT4_VANILLA
 	{
 		e->next = s;
 		eclass = e;
@@ -353,7 +365,11 @@ void Eclass_InsertAlphabetized (eclass_t *e)
 
 	do
 	{
+#ifdef IDT4_VANILLA
 		if (!s->next || stricmp (e->name, s->next->name) < 0)
+#else
+		if (!s->next || idStr::Icmp (e->name, s->next->name) < 0)
+#endif // IDT4_VANILLA
 		{
 			e->next = s->next;
 			s->next = e;
@@ -399,7 +415,11 @@ eclass_t *Eclass_ForName (const char *name, bool has_brushes)
 	}
 
 	for ( e = eclass; e; e = e->next ) {
+#ifdef IDT4_VANILLA
 		if ( !strcmp( name, e->name ) ) {
+#else
+		if ( !idStr::Cmp( name, e->name ) ) {
+#endif // IDT4_VANILLA
 			return e;
 		}
 	}
@@ -431,7 +451,11 @@ eclass_t* GetCachedModel(entity_t *pEntity, const char *pName, idVec3 &vMin, idV
 	}
 
 	for (e = g_md3Cache; e ; e = e->next) {
+#ifdef IDT4_VANILLA
 		if (!strcmp (pName, e->name)) {
+#else
+		if (!idStr::Cmp (pName, e->name)) {
+#endif // IDT4_VANILLA
 			pEntity->md3Class = e;
 			VectorCopy(e->mins, vMin);
 			VectorCopy(e->maxs, vMax);
