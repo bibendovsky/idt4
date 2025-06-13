@@ -5,7 +5,7 @@ Copyright (c) 2022 Boris I. Bendovsky (bibendovsky@hotmail.com) and Contributors
 SPDX-License-Identifier: GPL-3.0-only AND MIT
 ]]
 
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16.9 FATAL_ERROR)
 project(idt4_type_info VERSION 1.0.0 LANGUAGES CXX)
 
 message(STATUS "[${PROJECT_NAME}] Version: ${PROJECT_VERSION}")
@@ -35,12 +35,12 @@ target_link_libraries(${PROJECT_NAME}
 		idt4_id_lib
 )
 
-if (pch)
+if(idt4_pch)
 	target_precompile_headers(${PROJECT_NAME}
 		PRIVATE
 			../idlib/precompiled.h
 	)
-endif ()
+endif()
 
 target_sources(${PROJECT_NAME}
 	PRIVATE

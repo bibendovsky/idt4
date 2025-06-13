@@ -52,12 +52,12 @@ target_link_libraries(${PROJECT_NAME}
 		idt4_id_lib
 )
 
-if (pch)
+if(idt4_pch)
 	target_precompile_headers(${PROJECT_NAME}
 		PRIVATE
 			../idlib/precompiled.h
 	)
-endif ()
+endif()
 
 target_sources(${PROJECT_NAME}
 	PRIVATE

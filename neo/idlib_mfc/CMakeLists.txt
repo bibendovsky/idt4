@@ -32,12 +32,12 @@ target_include_directories(${PROJECT_NAME}
 		../idlib
 )
 
-if (pch)
+if(idt4_pch)
 	target_precompile_headers(${PROJECT_NAME}
 		PRIVATE
 			../idlib/precompiled.h
 	)
-endif ()
+endif()
 
 target_sources(${PROJECT_NAME}
 	PRIVATE

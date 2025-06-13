@@ -10,11 +10,11 @@ project(idt4_d3 VERSION 1.0.0 LANGUAGES CXX C)
 
 message(STATUS "[${PROJECT_NAME}] Version: ${PROJECT_VERSION}")
 
-if (win32_mfc)
+if(idt4_win32_mfc)
 	set(CMAKE_MFC_FLAG 1)
-else ()
+else()
 	set(CMAKE_MFC_FLAG 0)
-endif ()
+endif()
 
 add_executable(${PROJECT_NAME})
 
@@ -35,7 +35,7 @@ target_compile_definitions(${PROJECT_NAME}
 		__DOOM__
 		__DOOM_DLL__
 	PRIVATE
-		$<$<BOOL:${win32_mfc}>:IDT4_MFC>
+		$<$<BOOL:${idt4_win32_mfc}>:IDT4_MFC>
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -65,15 +65,15 @@ target_link_libraries(${PROJECT_NAME}
 		"${PROJECT_SOURCE_DIR}/../openal/lib/eaxguid.lib"
 	PRIVATE
 		idt4_curl_lib
-		$<IF:$<BOOL:${win32_mfc}>,idt4_id_lib_mfc,idt4_id_lib>
+		$<IF:$<BOOL:${idt4_win32_mfc}>,idt4_id_lib_mfc,idt4_id_lib>
 )
 
-if (pch)
+if(idt4_pch)
 	target_precompile_headers(${PROJECT_NAME}
 		PRIVATE
 			../idlib/precompiled.h
 	)
-endif ()
+endif()
 
 target_sources(${PROJECT_NAME}
 	PRIVATE
@@ -488,7 +488,7 @@ target_sources(${PROJECT_NAME}
 		$<IF:$<VERSION_GREATER:${MSVC_VERSION},1310>,../sys/win32/rc/idt4.manifest,../sys/win32/rc/idt4.rc>
 )
 
-if (win32_mfc)
+if(idt4_win32_mfc)
 	target_sources(${PROJECT_NAME}
 		PRIVATE
 			../tools/af/DialogAF.cpp
@@ -800,12 +800,12 @@ if (win32_mfc)
 			../tools/sound/DialogSoundGroup.cpp
 			../tools/sound/DialogSoundGroup.h
 	)
-else ()
+else()
 	target_sources(${PROJECT_NAME}
 		PRIVATE
 			../tools/edit_stub.cpp
 	)
-endif ()
+endif()
 
 install(
 	TARGETS ${PROJECT_NAME}

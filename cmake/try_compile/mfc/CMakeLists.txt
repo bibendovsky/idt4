@@ -5,9 +5,10 @@ Copyright (c) 2022 Boris I. Bendovsky (bibendovsky@hotmail.com) and Contributors
 SPDX-License-Identifier: GPL-3.0-only AND MIT
 ]]
 
+cmake_minimum_required(VERSION 3.16.9 FATAL_ERROR)
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-cmake_minimum_required(VERSION 3.16.9 FATAL_ERROR)
 project(idt4_try_compile_mfc VERSION 1.0.0 LANGUAGES CXX)
 
 message(STATUS "[${PROJECT_NAME}] Version: ${PROJECT_VERSION}")

@@ -31,12 +31,12 @@ target_link_libraries(${PROJECT_NAME}
 		idt4_id_lib
 )
 
-if (pch)
+if(idt4_pch)
 	target_precompile_headers(${PROJECT_NAME}
 		PRIVATE
 			../idlib/precompiled.h
 	)
-endif ()
+endif()
 
 set_source_files_properties(
 		gamesys/TypeInfo.cpp
@@ -183,5 +183,5 @@ target_sources(${PROJECT_NAME}
 
 install(
 	TARGETS ${PROJECT_NAME}
-	RUNTIME DESTINATION "./base"
+	RUNTIME DESTINATION "base"
 )
