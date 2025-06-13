@@ -387,6 +387,8 @@ target_sources(${PROJECT_NAME}
 		../sys/win32/win_main.cpp
 		../sys/win32/win_net.cpp
 		../sys/win32/win_qgl.cpp
+		../sys/win32/win_rounded_corner_mgr.cpp
+		../sys/win32/win_rounded_corner_mgr.h
 		../sys/win32/win_shared.cpp
 		../sys/win32/win_snd.cpp
 		../sys/win32/win_syscon.cpp

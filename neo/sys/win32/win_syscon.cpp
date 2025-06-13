@@ -41,6 +41,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "rc/AFEditor_resource.h"
 #include "rc/doom_resource.h"
 
+#ifndef IDT4_VANILLA
+#include "win_rounded_corner_mgr.h"
+#endif // IDT4_VANILLA
+
 #define COPY_ID			1
 #define QUIT_ID			2
 #define CLEAR_ID		3
@@ -336,6 +340,10 @@ void Sys_CreateConsole( void ) {
 	if ( s_wcd.hWnd == NULL ) {
 		return;
 	}
+
+#ifndef IDT4_VANILLA
+	WinRoundedCornerMgr::disable(s_wcd.hWnd);
+#endif // IDT4_VANILLA
 
 	//
 	// create fonts

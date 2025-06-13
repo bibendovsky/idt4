@@ -48,6 +48,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "rc/doom_resource.h"
 #include "../../renderer/tr_local.h"
 
+#ifndef IDT4_VANILLA
+#include "win_rounded_corner_mgr.h"
+#endif // IDT4_VANILLA
+
 static void		GLW_InitExtensions( void );
 
 
@@ -629,6 +633,10 @@ static bool GLW_CreateWindow( glimpParms_t parms ) {
 		common->Printf( "^3GLW_CreateWindow() - Couldn't create window^0\n" );
 		return false;
 	}
+
+#ifndef IDT4_VANILLA
+	WinRoundedCornerMgr::disable(win32.hWnd);
+#endif // IDT4_VANILLA
 
 	::SetTimer( win32.hWnd, 0, 100, NULL );
 

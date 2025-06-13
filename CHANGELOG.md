@@ -5,8 +5,12 @@
 ### Added
 - Borderless mode.
 
+### Changed
+- Disable rounded corners for system windows.
+
 ### Fixed
-[D3] Bug 003 (OpenAL Deleting attached buffer).
+- [D3] Bug 003 (OpenAL Deleting attached buffer).
+- DPI awarness.
 
 
 ## [1.0.0] - 2022-09-09
