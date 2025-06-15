@@ -40,8 +40,10 @@ If you have questions concerning this license or the applicable additional terms
 #include <conio.h>
 
 #ifndef	ID_DEDICATED
+#ifdef IDT4_VANILLA
 #include <comdef.h>
 #include <comutil.h>
+#endif // IDT4_VANILLA
 #include <Wbemidl.h>
 
 #pragma comment (lib, "wbemuuid.lib")
