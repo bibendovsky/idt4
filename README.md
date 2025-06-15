@@ -20,7 +20,6 @@ Contents
    4.1 OpenAL EFX  
    4.2 Audio limiter  
    4.3 Borderless mode
-5. Links
 
 
 1 - Disclaimer
@@ -68,11 +67,6 @@ Completely new source code files are licensed under MIT unless otherwise stated 
 - `IDT4_MFC`  
   Utilizes MFC to build the editor.  
   Default value: `ON`
-
-- `IDT4_DIRECTX_DIR`  
-  Required path to DirectX headers and libraries.  
-  Expected directory layout: `include`, `lib/x86`  
-  Requires `dxerr.h` and `dxerr.lib` from DirectX 8/9.
 
 
 3 - Fixed bugs
@@ -130,8 +124,3 @@ New CVARs:
 - `r_preferBorderless <0|1>`  
   Tries to use borderless mode if value set to `1` and CVAR `r_fullscreen` set to `1`.  
   Default value: `0`
-
-
-5 - Links
-=========
-- [Dependencies for building](https://github.com/bibendovsky/idt4_dependencies)

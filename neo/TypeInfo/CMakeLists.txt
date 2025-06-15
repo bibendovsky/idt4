@@ -25,14 +25,10 @@ target_compile_definitions(${PROJECT_NAME}
 		__DOOM_DLL__
 )
 
-target_include_directories(${PROJECT_NAME}
-	PRIVATE
-		"${IDT4_DIRECTX_DIR}/include"
-)
-
 target_link_libraries(${PROJECT_NAME}
 	PRIVATE
 		idt4_id_lib
+		idt4::directx
 )
 
 if(idt4_pch)

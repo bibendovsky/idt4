@@ -29,7 +29,11 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 
 // DirectX SDK
+#ifdef IDT4_VANILLA
 #include <DxErr.h>
+#else // IDT4_VANILLA
+#include "dxerr.h"
+#endif // IDT4_VANILLA
 
 #include <ks.h>
 #include <ksmedia.h>

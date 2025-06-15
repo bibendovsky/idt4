@@ -31,11 +31,6 @@ target_compile_definitions(${PROJECT_NAME}
 		ID_DEDICATED
 )
 
-target_include_directories(${PROJECT_NAME}
-	PRIVATE
-		"${IDT4_DIRECTX_DIR}/include"
-)
-
 target_link_libraries(${PROJECT_NAME}
 	PRIVATE
 		dbghelp
@@ -43,10 +38,7 @@ target_link_libraries(${PROJECT_NAME}
 		opengl32
 		winmm
 		wsock32
-		"${IDT4_DIRECTX_DIR}/lib/x86/dinput8.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dsound.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dxguid.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dxerr.lib"
+		idt4::directx
 	PRIVATE
 		idt4_curl_lib
 		idt4_id_lib

@@ -40,7 +40,6 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE
-		"${IDT4_DIRECTX_DIR}/include"
 		../tools/materialeditor/idt4_dummy
 )
 
@@ -58,10 +57,7 @@ target_link_libraries(${PROJECT_NAME}
 		opengl32
 		winmm
 		wsock32
-		"${IDT4_DIRECTX_DIR}/lib/x86/dinput8.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dsound.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dxguid.lib"
-		"${IDT4_DIRECTX_DIR}/lib/x86/dxerr.lib"
+		idt4::directx
 		"${PROJECT_SOURCE_DIR}/../openal/lib/eaxguid.lib"
 	PRIVATE
 		idt4_curl_lib

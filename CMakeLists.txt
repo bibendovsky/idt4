@@ -142,23 +142,12 @@ message(STATUS "[idt4] Use MFC: ${idt4_win32_mfc}")
 
 # ===========================================================================
 
-set(IDT4_DIRECTX_DIR "" CACHE PATH "Path to DirectX SDK.")
-
-if(NOT EXISTS "${IDT4_DIRECTX_DIR}" OR
-	NOT EXISTS "${IDT4_DIRECTX_DIR}/include/dxerr.h" OR
-	NOT EXISTS "${IDT4_DIRECTX_DIR}/lib/x86/dxerr.lib")
-	message(FATAL_ERROR "DirectX SDK not found.")
-endif()
-
-message(STATUS "[idt4] DirectX SDK: ${IDT4_DIRECTX_DIR}")
-
-# ===========================================================================
-
 project(idt4_solution VERSION 1.0.0 LANGUAGES NONE)
 
 message(STATUS "[${PROJECT_NAME}] Version: ${PROJECT_VERSION}")
 
 add_subdirectory(neo/curl)
+add_subdirectory(neo/directx)
 add_subdirectory(neo/idlib)
 if(idt4_win32_mfc)
 	add_subdirectory(neo/idlib_mfc)
