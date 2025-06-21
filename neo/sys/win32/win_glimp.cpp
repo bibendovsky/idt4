@@ -135,6 +135,17 @@ PFNWGLSETPBUFFERATTRIBARBPROC	wglSetPbufferAttribARB;
 #define WGL_SAMPLE_BUFFERS_ARB             0x2041
 #define WGL_SAMPLES_ARB                    0x2042
 
+#ifndef IDT4_VANILLA
+namespace {
+
+const char* const wgl_get_pixel_format_attribiv_arb_string = "wglGetPixelFormatAttribivARB";
+const char* const wgl_choose_pixel_format_arb_string = "wglChoosePixelFormatARB";
+const char* const wgl_arb_multisample_string = "WGL_ARB_multisample";
+
+bool has_wgl_arb_multisample = false;
+
+} // namespace
+#endif // IDT4_VANILLA
 
 
 //
@@ -143,7 +154,175 @@ PFNWGLSETPBUFFERATTRIBARBPROC	wglSetPbufferAttribARB;
 bool QGL_Init( const char *dllname );
 void     QGL_Shutdown( void );
 
+#ifndef IDT4_VANILLA
+namespace {
 
+// ================
+
+template<typename T>
+struct WglAttributeListTraits;
+
+template<>
+struct WglAttributeListTraits<int>
+{
+	typedef int Element;
+
+	static const int attribute_capacity = 63;
+	static const int storage_capacity = 2 * (attribute_capacity + 1);
+};
+
+template<>
+struct WglAttributeListTraits<FLOAT>
+{
+	typedef float Element;
+
+	static const int attribute_capacity = 0;
+	static const int storage_capacity = 2 * (attribute_capacity + 1);
+};
+
+// ================
+
+template<typename T>
+class WglAttributeList
+{
+public:
+	typedef WglAttributeListTraits<T> Traits;
+	typedef typename Traits::Element Element;
+
+public:
+	WglAttributeList();
+
+	bool is_failed() const;
+	const char* get_error_message() const;
+	const Element* get_data() const;
+	void append(Element key, Element value);
+
+private:
+	static const int attribute_capacity = Traits::attribute_capacity;
+	static const int storage_capacity = Traits::storage_capacity;
+
+private:
+	typedef Element Elements[Traits::storage_capacity];
+
+private:
+	const char* error_message_;
+	Elements elements_;
+	int size_;
+	bool is_failed_;
+
+private:
+	WglAttributeList(const WglAttributeList&);
+	WglAttributeList& operator=(const WglAttributeList&);
+
+	void clear();
+};
+
+// ----------------
+
+template<typename T>
+WglAttributeList<T>::WglAttributeList()
+{
+	clear();
+}
+
+template<typename T>
+bool WglAttributeList<T>::is_failed() const
+{
+	return is_failed_;
+}
+
+template<typename T>
+const char* WglAttributeList<T>::get_error_message() const
+{
+	return error_message_;
+}
+
+template<typename T>
+const typename WglAttributeList<T>::Element* WglAttributeList<T>::get_data() const
+{
+	return elements_;
+}
+
+template<typename T>
+void WglAttributeList<T>::append(Element key, Element value)
+{
+	if (is_failed())
+	{
+		return;
+	}
+
+	if (key <= 0 || key > 0xFFFF)
+	{
+		error_message_ = "Key out of range.";
+		is_failed_ = true;
+		return;
+	}
+
+	if (size_ == attribute_capacity)
+	{
+		error_message_ = "Too many attributes.";
+		is_failed_ = true;
+		return;
+	}
+
+	elements_[size_ * 2 + 0] = key;
+	elements_[size_ * 2 + 1] = value;
+	elements_[size_ * 2 + 2] = Element();
+	elements_[size_ * 2 + 3] = Element();
+	++size_;
+}
+
+template<typename T>
+void WglAttributeList<T>::clear()
+{
+	error_message_ = "";
+	elements_[0] = Element();
+	elements_[1] = Element();
+	size_ = 0;
+	is_failed_ = false;
+}
+
+// ================
+
+typedef WglAttributeList<int> WglIAttributeList;
+typedef WglAttributeList<FLOAT> WglFAttributeList;
+
+// ================
+
+bool is_wgl_extension_supported(const char* extension_name)
+{
+	const size_t extension_name_length = strlen(extension_name);
+
+	if (extension_name_length == 0)
+	{
+		return false;
+	}
+
+	const char* extensions_string = glConfig.wgl_extensions_string;
+
+	while (true)
+	{
+		extensions_string = strstr(extensions_string, extension_name);
+
+		if (extensions_string == NULL)
+		{
+			return false;
+		}
+
+		const char last_char = extensions_string[extension_name_length];
+
+		if ((extensions_string == glConfig.wgl_extensions_string || extensions_string[-1] == ' ') &&
+			(last_char == ' ' || last_char == '\0'))
+		{
+			return true;
+		}
+
+		extensions_string += extension_name_length;
+	}
+}
+
+} // namespace
+#endif // IDT4_VANILLA
 
 /*
 ========================
@@ -292,25 +471,81 @@ void GLW_CheckWGLExtensions( HDC hDC ) {
 	}
 
 	// WGL_EXT_swap_control
+#ifndef IDT4_VANILLA
+	if (is_wgl_extension_supported("WGL_EXT_swap_control"))
+	{
+#endif // IDT4_VANILLA
 	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) GLimp_ExtensionPointer( "wglSwapIntervalEXT" );
+#ifndef IDT4_VANILLA
+	}
+	else
+	{
+		wglSwapIntervalEXT = NULL;
+	}
+#endif // IDT4_VANILLA
 	r_swapInterval.SetModified();	// force a set next frame
 
 	// WGL_ARB_pixel_format
+#ifndef IDT4_VANILLA
+	if (is_wgl_extension_supported("WGL_ARB_pixel_format"))
+	{
+#endif // IDT4_VANILLA
 	wglGetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)GLimp_ExtensionPointer("wglGetPixelFormatAttribivARB");
 	wglGetPixelFormatAttribfvARB = (PFNWGLGETPIXELFORMATATTRIBFVARBPROC)GLimp_ExtensionPointer("wglGetPixelFormatAttribfvARB");
 	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)GLimp_ExtensionPointer("wglChoosePixelFormatARB");
+#ifndef IDT4_VANILLA
+	}
+	else
+	{
+		wglGetPixelFormatAttribivARB = NULL;
+		wglGetPixelFormatAttribfvARB = NULL;
+		wglChoosePixelFormatARB = NULL;
+	}
+#endif // IDT4_VANILLA
 
 	// WGL_ARB_pbuffer
+#ifndef IDT4_VANILLA
+	if (is_wgl_extension_supported("WGL_ARB_pbuffer"))
+	{
+#endif // IDT4_VANILLA
 	wglCreatePbufferARB = (PFNWGLCREATEPBUFFERARBPROC)GLimp_ExtensionPointer("wglCreatePbufferARB");
 	wglGetPbufferDCARB = (PFNWGLGETPBUFFERDCARBPROC)GLimp_ExtensionPointer("wglGetPbufferDCARB");
 	wglReleasePbufferDCARB = (PFNWGLRELEASEPBUFFERDCARBPROC)GLimp_ExtensionPointer("wglReleasePbufferDCARB");
 	wglDestroyPbufferARB = (PFNWGLDESTROYPBUFFERARBPROC)GLimp_ExtensionPointer("wglDestroyPbufferARB");
 	wglQueryPbufferARB = (PFNWGLQUERYPBUFFERARBPROC)GLimp_ExtensionPointer("wglQueryPbufferARB");
+#ifndef IDT4_VANILLA
+	}
+	else
+	{
+		wglCreatePbufferARB = NULL;
+		wglGetPbufferDCARB = NULL;
+		wglReleasePbufferDCARB = NULL;
+		wglDestroyPbufferARB = NULL;
+		wglQueryPbufferARB = NULL;
+	}
+#endif // IDT4_VANILLA
 
 	// WGL_ARB_render_texture 
+#ifndef IDT4_VANILLA
+	if (is_wgl_extension_supported("WGL_ARB_render_texture"))
+	{
+#endif // IDT4_VANILLA
 	wglBindTexImageARB = (PFNWGLBINDTEXIMAGEARBPROC)GLimp_ExtensionPointer("wglBindTexImageARB");
 	wglReleaseTexImageARB = (PFNWGLRELEASETEXIMAGEARBPROC)GLimp_ExtensionPointer("wglReleaseTexImageARB");
 	wglSetPbufferAttribARB = (PFNWGLSETPBUFFERATTRIBARBPROC)GLimp_ExtensionPointer("wglSetPbufferAttribARB");
+#ifndef IDT4_VANILLA
+	}
+	else
+	{
+		wglBindTexImageARB = NULL;
+		wglReleaseTexImageARB = NULL;
+		wglSetPbufferAttribARB = NULL;
+	}
+#endif // IDT4_VANILLA
+
+#ifndef IDT4_VANILLA
+	has_wgl_arb_multisample = is_wgl_extension_supported(wgl_arb_multisample_string);
+#endif // IDT4_VANILLA
 }
 
 /*
@@ -406,6 +641,7 @@ static bool GLW_InitDriver( glimpParms_t parms ) {
 		common->Printf( "succeeded\n" );
 	}
 
+#ifdef IDT4_VANILLA
 	// the multisample path uses the wgl 
 	if ( wglChoosePixelFormatARB && parms.multiSamples > 1 ) {
 		int		iAttributes[20];
@@ -435,7 +671,82 @@ static bool GLW_InitDriver( glimpParms_t parms ) {
 		iAttributes[19] = 0;
 
 		wglChoosePixelFormatARB( win32.hDC, iAttributes, fAttributes, 1, &win32.pixelformat, &numFormats );
-	} else {
+	}
+#else
+	if (wglChoosePixelFormatARB != NULL)
+	{
+		WglIAttributeList iattributes;
+
+		if (parms.stereo)
+		{
+			common->Printf("...attempting to use stereo\n");
+			iattributes.append(WGL_STEREO_ARB, TRUE);
+		}
+
+		if (parms.multiSamples > 1)
+		{
+			if (has_wgl_arb_multisample)
+			{
+				iattributes.append(WGL_SAMPLE_BUFFERS_ARB, 1);
+				iattributes.append(WGL_SAMPLES_ARB, parms.multiSamples);
+			}
+			else
+			{
+				common->Printf("...^3%s requested but not supported^0\n", wgl_arb_multisample_string);
+			}
+		}
+
+		iattributes.append(WGL_DOUBLE_BUFFER_ARB, TRUE);
+		iattributes.append(WGL_STENCIL_BITS_ARB, 8);
+		iattributes.append(WGL_DEPTH_BITS_ARB, 24);
+		iattributes.append(WGL_RED_BITS_ARB, 8);
+		iattributes.append(WGL_BLUE_BITS_ARB, 8);
+		iattributes.append(WGL_GREEN_BITS_ARB, 8);
+		iattributes.append(WGL_ALPHA_BITS_ARB, 8);
+
+		if (iattributes.is_failed())
+		{
+			common->Printf(
+				"...^3%s iattribute list failed: %s^0\n",
+				wgl_choose_pixel_format_arb_string,
+				iattributes.get_error_message());
+			return false;
+		}
+
+		const WglFAttributeList fattributes;
+
+		if (fattributes.is_failed())
+		{
+			common->Printf(
+				"...^3%s fattribute list failed: %s^0\n",
+				wgl_choose_pixel_format_arb_string,
+				fattributes.get_error_message());
+			return false;
+		}
+
+		UINT format_count;
+
+		if (!wglChoosePixelFormatARB(
+			win32.hDC,
+			iattributes.get_data(),
+			fattributes.get_data(),
+			1,
+			&win32.pixelformat,
+			&format_count))
+		{
+			const DWORD error_code = GetLastError();
+			common->Printf("...^3%s: failed (error_code=0x%X)^0\n", wgl_choose_pixel_format_arb_string, error_code);
+			return false;
+		}
+
+		if (format_count == 0)
+		{
+			common->Printf("...^3%s: no matching formats are found^0\n", wgl_choose_pixel_format_arb_string);
+			return false;
+		}
+	}
+#endif
+	else {
 		// this is the "classic" choose pixel format path
 
 		// eventually we may need to have more fallbacks, but for
@@ -462,6 +773,29 @@ static bool GLW_InitDriver( glimpParms_t parms ) {
 	glConfig.colorBits = win32.pfd.cColorBits;
 	glConfig.depthBits = win32.pfd.cDepthBits;
 	glConfig.stencilBits = win32.pfd.cStencilBits;
+#ifndef IDT4_VANILLA
+	if (wglGetPixelFormatAttribivARB != NULL)
+	{
+		const int iattribute_count = 3;
+		const int ikeys[iattribute_count] = {WGL_COLOR_BITS_ARB, WGL_DEPTH_BITS_ARB, WGL_STENCIL_BITS_ARB};
+		int ivalues[iattribute_count];
+
+		if (wglGetPixelFormatAttribivARB(win32.hDC, win32.pixelformat, 0, iattribute_count, ikeys, ivalues))
+		{
+			glConfig.colorBits = ivalues[0];
+			glConfig.depthBits = ivalues[1];
+			glConfig.stencilBits = ivalues[2];
+		}
+		else
+		{
+			const DWORD error_code = GetLastError();
+			common->Printf(
+				"...^3%s: failed (error_code=0x%X)^0\n",
+				wgl_get_pixel_format_attribiv_arb_string,
+				error_code);
+		}
+	}
+#endif // IDT4_VANILLA
 
 	// XP seems to set this incorrectly
 	if ( !glConfig.stencilBits ) {
